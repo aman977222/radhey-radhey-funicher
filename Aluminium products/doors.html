@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Designer Doors — Modern Aluminium &amp; Glass Doors | Radhey Radhey Furniture</title>
+  <meta name="description"
+    content="Custom designer aluminium and glass doors, fluted glass sliders, soundproof entry doors, and bi-fold systems engineered in Kekri, Rajasthan.">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/fabrication.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+  <!-- ================= TOP ANNOUNCEMENT BAR ================= -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span>🔴 <strong>RADHEY RADHEY WORKSHOP:</strong> Heavy-Duty Architectural Doors with Toughened Safety Glass</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+919772225296"><i class="bi bi-telephone"></i> Call: +91 97722 25296</a>
+        <a href="https://wa.me/919772225296" target="_blank" style="color: forestgreen; margin-left: 15px;"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="../index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture &amp; Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-search">
+        <form id="headerSearchForm" class="search-box" onsubmit="event.preventDefault(); window.location.href='../shop.html?search='+encodeURIComponent(document.getElementById('mainSearchInput').value);">
+          <input type="text" id="mainSearchInput" placeholder="Search Windows, Doors, Gates, Railings, Partitions...">
+          <button type="submit" class="search-btn"><i class="bi bi-search"></i></button>
+        </form>
+        <div id="searchResultsDropdown" class="search-results-dropdown"></div>
+      </div>
+
+      <div class="header-actions">
+        <a href="../shop.html" class="action-btn">
+          <i class="bi bi-bag"></i>
+          <span>Catalog</span>
+        </a>
+        <a href="../user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" id="wishlistCount">0</span>
+          <span>Wishlist</span>
+        </a>
+        <a href="../cart.html" class="action-btn" title="View Cart">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" id="cartCount">0</span>
+          <span>Cart</span>
+        </a>
+        <a href="../user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= 9 CATEGORY QUICK SWITCH PILLS BAR ================= -->
+  <div class="fabrication-nav-bar">
+    <div class="container">
+      <div class="fabrication-nav-links">
+        <a href="windows.html" class="fab-nav-pill"><i class="bi bi-window-split"></i> Windows</a>
+        <a href="doors.html" class="fab-nav-pill active"><i class="bi bi-door-open-fill"></i> Doors</a>
+        <a href="gates.html" class="fab-nav-pill"><i class="bi bi-grid-3x3-gap-fill"></i> Gates</a>
+        <a href="mirrors.html" class="fab-nav-pill"><i class="bi bi-circle"></i> Mirrors</a>
+        <a href="partitions.html" class="fab-nav-pill"><i class="bi bi-layout-split"></i> Partitions</a>
+        <a href="railings.html" class="fab-nav-pill"><i class="bi bi-reception-4"></i> Railings</a>
+        <a href="shower.html" class="fab-nav-pill"><i class="bi bi-droplet-half"></i> Shower</a>
+        <a href="aluminium.html" class="fab-nav-pill"><i class="bi bi-buildings-fill"></i> Aluminium</a>
+        <a href="steel-work.html" class="fab-nav-pill"><i class="bi bi-hammer"></i> Steel Work</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BREADCRUMBS ================= -->
+  <div style="background: whitesmoke; padding: 12px 0; border-bottom: 1px solid lightgray;">
+    <div class="container" style="display: flex; gap: 8px; font-size: 0.86rem; color: gray;">
+      <a href="../index.html" style="color: black; font-weight: 600;"><i class="bi bi-house-door"></i> Home</a>
+      <span>/</span>
+      <a href="doors.html" style="color: black; font-weight: 600;">Aluminium Products</a>
+      <span>/</span>
+      <span style="color: var(--primary-red, red); font-weight: 700;" id="crumbProductName">Designer Doors</span>
+    </div>
+  </div>
+
+  <!-- ================= HERO BANNER ================= -->
+  <div class="container">
+    <div class="category-hero-banner">
+      <div class="category-hero-badge">
+        <i class="bi bi-door-open"></i> Architectural Glass &amp; Heavy Section Doors
+      </div>
+      <h1 class="category-hero-title">Aluminium &amp; Glass <span>Doors</span> Studio</h1>
+      <p class="category-hero-desc">
+        From ultra-slim profile fluted glass sliding partitions to robust main entryway doors with smart digital deadbolts and heavy-duty floor spring hydraulic pivots.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= 1. CATEGORY PRODUCTS GRID (Exact Cards like Screenshot) ================= -->
+  <section class="container" style="padding: 35px 0 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid whitesmoke; padding-bottom: 15px;">
+      <div>
+        <span style="background: mistyrose; color: var(--primary-red, red); font-size: 0.8rem; font-weight: 800; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Available Designs
+        </span>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: black; margin-top: 6px;">
+          Designer Glass &amp; Aluminium Doors Collection
+        </h2>
+        <p style="color: gray; font-size: 0.94rem; margin-top: 2px;">
+          Select any door model below to view technical specifications, finish options, and quotation.
+        </p>
+      </div>
+      <div style="font-size: 0.92rem; color: gray; font-weight: 600;">
+        Showing <strong style="color: var(--primary-red, red);" id="productCountBadge">2 Models</strong>
+      </div>
+    </div>
+
+    <!-- Product Cards Grid (Matching User's Screenshot) -->
+    <div class="products-grid product-grid" id="categoryProductsGrid"></div>
+  </section>
+
+  <!-- ================= SITE FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3 style="color: white; margin-bottom: 15px;">Radhey Radhey Workshop</h3>
+          <p style="color: lightgray; font-size: 0.88rem; line-height: 1.6;">
+            Kekri's trusted destination for heavy architectural aluminium fabrication, toughened glass doors, stainless steel railings, and laser-cut gates.
+          </p>
+          <div style="margin-top: 15px; color: lightgray; font-size: 0.85rem;">
+            <i class="bi bi-geo-alt-fill text-gold"></i> 
+          </div>
+        </div>
+        <div class="footer-col">
+          <h3 style="color: white; margin-bottom: 15px;">Fabrication Categories</h3>
+          <ul class="footer-links">
+            <li><a href="windows.html">Aluminium Windows</a></li>
+            <li><a href="doors.html">Designer Glass Doors</a></li>
+            <li><a href="gates.html">Laser Cut Gates</a></li>
+            <li><a href="mirrors.html">LED Vanity Mirrors</a></li>
+            <li><a href="partitions.html">Acoustic Partitions</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 style="color: white; margin-bottom: 15px;">Customer Care</h3>
+          <ul class="footer-links">
+            <li><a href="../contact.html">Book Free Site Survey</a></li>
+            <li><a href="../cart.html">View Cart &amp; Cost Estimate</a></li>
+            <li><a href="../admin/index.html">Fabricator / Admin Login</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom" style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 30px; padding-top: 20px; text-align: center; color: gray; font-size: 0.85rem;">
+        <p>&copy; 2026 Radhey Radhey Furniture &amp; Aluminium Works, Kekri. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    const CATEGORY_NAME = 'doors';
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedId = urlParams.get('id');
+
+    if (requestedId) {
+      window.location.replace('../product-details.html?id=' + encodeURIComponent(requestedId));
+    }
+
+    function renderCategoryProducts() {
+      const prods = getProductsByCategory(CATEGORY_NAME);
+      const grid = document.getElementById('categoryProductsGrid');
+      const badge = document.getElementById('productCountBadge');
+      if (badge) badge.textContent = `${prods.length} Models`;
+      if (grid) {
+        grid.innerHTML = prods.map(p => renderProductCard(p)).join('');
+      }
+    }
+
+    function openModelDetails(pId) {
+      if (typeof openQuickView === 'function') {
+        openQuickView(pId);
+      } else {
+        window.location.href = '../product-details.html?id=' + encodeURIComponent(pId);
+      }
+    }
+
+    async function loadCloudDoors() {
+      if (typeof getAllProducts === 'function') {
+        try {
+          const prods = await getAllProducts();
+          if (Array.isArray(prods)) {
+            renderCategoryProducts();
+          }
+        } catch (e) {
+          console.warn('Cloud doors load warning:', e);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategoryProducts();
+      loadCloudDoors();
+    });
+
+    window.addEventListener('radha_products_synced', () => {
+      renderCategoryProducts();
+    });
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'radha_furniture_custom_products_v1') {
+        renderCategoryProducts();
+      }
+    });
+  </script>
+</body>
+
+</html>

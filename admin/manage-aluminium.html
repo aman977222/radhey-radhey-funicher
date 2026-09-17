@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aluminium & Steel Fabrication Studio — Radhey Radhey Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+
+  <style>
+    :root {
+      --admin-fab-red: red;
+      --admin-fab-dark: black;
+      --admin-fab-accent: dodgerblue;
+    }
+
+    body.admin-body {
+      background: whitesmoke;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: black;
+    }
+
+    .fab-metric-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: lightgray;
+      color: darkslategray;
+    }
+
+    /* Studio Header Banner */
+    .studio-hero-banner {
+      background: linear-gradient(135deg, black 0%, darkslategray 60%, slategray 100%);
+      color: white;
+      border-radius: 14px;
+      padding: 22px 28px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-left: 6px solid var(--admin-fab-red);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Category Filter Pills */
+    .fab-category-pills-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 14px;
+      margin-bottom: 18px;
+      scrollbar-width: thin;
+    }
+
+    .fab-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: 1px solid lightgray;
+      background: white;
+      color: slategray;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .fab-pill-btn:hover,
+    .fab-pill-btn.active {
+      background: black;
+      color: white;
+      border-color: black;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .fab-pill-btn.active {
+      background: var(--admin-fab-red);
+      border-color: var(--admin-fab-red);
+    }
+
+    /* Modal Layout & A-Z Form */
+    .modal-fabrication-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .modal-fabrication-card {
+      background: white;
+      width: 100%;
+      max-width: 1180px;
+      height: 92vh;
+      max-height: 92vh;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+      border-top: 5px solid var(--admin-fab-red);
+      position: relative;
+    }
+
+    .modal-fabrication-header {
+      padding: 16px 24px;
+      background: white;
+      border-bottom: 1px solid lightgray;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    #fabProductForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .modal-fabrication-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 26px;
+      scrollbar-width: thin;
+      scrollbar-color: lightgray whitesmoke;
+    }
+
+    .modal-fabrication-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .modal-fabrication-body::-webkit-scrollbar-track {
+      background: whitesmoke;
+    }
+
+    .modal-fabrication-body::-webkit-scrollbar-thumb {
+      background: lightgray;
+      border-radius: 4px;
+    }
+
+    .modal-fabrication-footer {
+      padding: 14px 24px;
+      background: whitesmoke;
+      border-top: 1px solid lightgray;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 990px) {
+      .modal-fabrication-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-section-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--admin-fab-red);
+      margin: 18px 0 10px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px dashed lightgray;
+      padding-bottom: 5px;
+    }
+
+    .form-group-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group-full {
+      grid-column: 1 / -1;
+    }
+
+    .fab-input-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: darkslategray;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .fab-input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.2s ease;
+      background: whitesmoke;
+    }
+
+    .fab-input-field:focus {
+      border-color: var(--admin-fab-red);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+
+    /* Live Preview Panel */
+    .live-preview-box {
+      background: whitesmoke;
+      border: 1px solid lightgray;
+      border-radius: 12px;
+      padding: 18px;
+      position: sticky;
+      top: 0;
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 10px;
+    }
+
+    .preview-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid lightgray;
+    }
+
+    .preview-table td:first-child {
+      font-weight: 700;
+      color: slategray;
+      width: 38%;
+      background: whitesmoke;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body class="admin-body">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div
+        style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif; color: white;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block;">RADHEY RADHEY</strong>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" class="active" style="background: rgba(220, 38, 38, 0.12); color: var(--admin-fab-red); font-weight: 800; border-left: 4px solid var(--admin-fab-red);">
+        🏗️ Aluminium &amp; Steel Works
+      </a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <a href="../index.html" target="_blank">🌐 View Main Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+          🏗️ Aluminium, Glass &amp; Steel Fabrication Studio
+        </h2>
+        <p style="font-size: 0.82rem; color: gray; margin: 3px 0 0;">
+          A-to-Z control of architectural models: alloy profiles, toughened glass systems, SS-304 hardware, and live quotations
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <button type="button" onclick="openCreateAluminiumModal()" class="btn btn-red btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; padding: 10px 18px; border-radius: 8px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+          <i class="bi bi-plus-circle"></i> + Add New Fabrication Model
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding: 24px;">
+
+      <!-- Category Filter Pills Bar -->
+      <div class="fab-category-pills-bar" id="categoryPillsBar">
+        <button class="fab-pill-btn active" onclick="setFabricationFilter('all', this)">
+          ⭐ All Fabrication (<span id="countAll">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('windows', this)">
+          🪟 Windows (<span id="countWindows">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('doors', this)">
+          🚪 Doors (<span id="countDoors">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('gates', this)">
+          ⛩️ Gates (<span id="countGates">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('mirrors', this)">
+          🪞 Mirrors (<span id="countMirrors">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('partitions', this)">
+          🏢 Partitions (<span id="countPartitions">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('railings', this)">
+          🪜 Railings (<span id="countRailings">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('shower', this)">
+          🚿 Shower (<span id="countShower">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('aluminium', this)">
+          🏗️ Facades (<span id="countAluminium">0</span>)
+        </button>
+        <button class="fab-pill-btn" onclick="setFabricationFilter('steel-work', this)">
+          ⚙️ Steel Sheds (<span id="countSteel">0</span>)
+        </button>
+      </div>
+
+      <!-- Search & Action Toolbar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px; position: relative;">
+          <i class="bi bi-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: gray;"></i>
+          <input type="text" id="fabSearchInput" placeholder="Search model name, Jindal alloy, Saint-Gobain glass, or Model ID..." 
+                 oninput="handleSearchFilter()"
+                 style="width: 100%; padding: 11px 14px 11px 40px; border: 1px solid lightgray; border-radius: 10px; font-size: 0.88rem; outline: none; background: white;">
+        </div>
+        <div style="font-size: 0.86rem; color: gray; font-weight: 600;">
+          Showing <strong style="color: var(--admin-fab-red);" id="visibleCountText">0</strong> Fabrication Models
+        </div>
+      </div>
+
+      <!-- Fabrication Products Table Card -->
+      <div class="admin-table-card" style="background: white; border-radius: 14px; border: 1px solid lightgray; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div class="admin-table-responsive">
+          <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: whitesmoke; border-bottom: 2px solid lightgray; text-align: left; font-size: 0.82rem; color: slategray;">
+                <th style="padding: 14px;">Photo</th>
+                <th style="padding: 14px;">Model &amp; Category</th>
+                <th style="padding: 14px;">Alloy / Extrusion Profile</th>
+                <th style="padding: 14px;">Glass / Glazing System</th>
+                <th style="padding: 14px;">Rate Unit</th>
+                <th style="padding: 14px;">Status</th>
+                <th style="padding: 14px; text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="fabProductsTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 50px; color: gray;">
+                  <i class="bi bi-arrow-repeat spin" style="font-size: 2rem; color: var(--admin-fab-red);"></i>
+                  <p style="margin-top: 10px;">Loading fabrication models database...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= A-TO-Z FABRICATION PRODUCT MODAL ================= -->
+  <div class="modal-fabrication-overlay" id="fabModalOverlay">
+    <div class="modal-fabrication-card">
+      <div class="modal-fabrication-header">
+        <div>
+          <h3 id="modalHeadingText" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: black;">
+            ✨ Add New Aluminium &amp; Steel Model
+          </h3>
+          <p id="modalSubheadingText" style="margin: 3px 0 0; font-size: 0.8rem; color: gray;">
+            Enter complete A-to-Z technical specifications for architectural fabrication
+          </p>
+        </div>
+        <button type="button" onclick="closeFabModal()" style="background: none; border: none; font-size: 1.6rem; color: gray; cursor: pointer;">✕</button>
+      </div>
+
+      <form id="fabProductForm" autocomplete="off" onsubmit="handleFabFormSubmit(event)">
+        <input type="hidden" id="fabEditingId" value="">
+
+        <div class="modal-fabrication-body">
+          <!-- Left Column: All A-to-Z Fields -->
+          <div>
+            <div class="form-section-title">1. Basic Identification &amp; Category</div>
+            <div class="form-group-grid">
+              <div class="form-group-full">
+                <label class="fab-input-label">Product / Model Title *</label>
+                <input type="text" id="fabTitle" class="fab-input-field" placeholder="e.g. Jindal 3-Track Heavy Sliding Window with Mosquito Mesh" required autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Fabrication Category *</label>
+                <select id="fabCategory" class="fab-input-field" required onchange="handleCategoryChange(); updateLivePreview();">
+                  <option value="windows">🪟 Aluminium Windows</option>
+                  <option value="doors">🚪 Designer Doors</option>
+                  <option value="gates">⛩️ Main Gates</option>
+                  <option value="mirrors">🪞 LED &amp; Vanity Mirrors</option>
+                  <option value="partitions">🏢 Glass Partitions</option>
+                  <option value="railings">🪜 SS &amp; Glass Railings</option>
+                  <option value="shower">🚿 Shower Cubicles</option>
+                  <option value="aluminium">🏗️ Aluminium Facades &amp; Glazing</option>
+                  <option value="steel-work">⚙️ Structural Steel Work &amp; Sheds</option>
+                </select>
+              </div>
+              <div>
+                <label class="fab-input-label">Badge Tag (Optional)</label>
+                <input type="text" id="fabBadge" class="fab-input-field" placeholder="e.g. Best Seller, Jindal Certified, 2.0mm Heavy" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <div class="form-section-title">2. Unit &amp; Availability</div>
+            <div class="form-group-grid">
+              <div>
+                <label class="fab-input-label">Rate Unit / Calculation Basis</label>
+                <input type="text" id="fabRateUnit" class="fab-input-field" placeholder="e.g. Per Sq. Ft. / Per Set / Complete Panel" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Stock / Fabrication Status</label>
+                <select id="fabInStock" class="fab-input-field" onchange="updateLivePreview()">
+                  <option value="true">● Ready to Fabricate / In Stock</option>
+                  <option value="false">✕ Currently Unavailable / Sold Out</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-section-title">3. Visual Photos (Multi-Image Support)</div>
+            <div style="background: whitesmoke; border: 1px dashed lightgray; border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+              <label class="fab-input-label">Upload Real Photos from Computer/Phone:</label>
+              <input type="file" id="fabFileInput" accept="image/*" multiple onchange="handleFabFileUpload(event)" style="font-size: 0.82rem;">
+              <p style="font-size: 0.74rem; color: gray; margin: 5px 0 0;">
+                ✓ Multi-photos supported (Front angle, hardware detail, glass finish). Auto-compressed via HTML5 Canvas.
+              </p>
+            </div>
+            <div id="fabPhotoGalleryStrip" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; margin-bottom: 12px;"></div>
+
+            <div class="form-section-title">4. A-to-Z Technical Specifications (Detailed)</div>
+            <div class="form-group-grid">
+              <div class="form-group-full">
+                <label class="fab-input-label">Aluminium Extrusion / Profile Alloy *</label>
+                <input type="text" id="fabProfile" class="fab-input-field" placeholder="e.g. Jindal 6063-T6 Virgin Architectural Alloy (1.5mm to 2.0mm wall thickness)" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div class="form-group-full">
+                <label class="fab-input-label">Glass &amp; Glazing System *</label>
+                <input type="text" id="fabGlass" class="fab-input-field" placeholder="e.g. 5mm / 6mm Saint-Gobain Toughened Clear / Tinted Glass (DGU Available)" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Hardware, Rollers &amp; Locks</label>
+                <input type="text" id="fabHardware" class="fab-input-field" placeholder="e.g. SS-304 Heavy-Duty Bearing Rollers & Crescent Touch Locks" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Weather Gaskets &amp; Woolpile</label>
+                <input type="text" id="fabGaskets" class="fab-input-field" placeholder="e.g. EPDM Automotive-Grade Rubber Woolpile (100% Dust & Water Proof)" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Mosquito Mesh / Security Track</label>
+                <input type="text" id="fabMesh" class="fab-input-field" placeholder="e.g. SS-304 Invisible Wire Mesh Track Integration" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Warranty Details</label>
+                <input type="text" id="fabWarranty" class="fab-input-field" placeholder="e.g. 10 Years Color Guarantee | 5 Years Hardware Warranty" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div class="form-group-full">
+                <label class="fab-input-label">Finishes / Powder Coating Schemes (Comma-separated)</label>
+                <input type="text" id="fabFinishes" class="fab-input-field" placeholder="e.g. Champagne Gold Anodized, Matte Black Powder Coated, Natural Silver, Dark Walnut" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div class="form-group-full">
+                <label class="fab-input-label">Technical Description &amp; Custom Sizing Notes</label>
+                <textarea id="fabDesc" rows="3" class="fab-input-field" placeholder="Describe profile strength, soundproofing cut (e.g. 35dB), water drainage slots..." autocomplete="off" oninput="updateLivePreview()"></textarea>              </div>
+            </div>
+
+            <div class="form-section-title">5. Trust Highlights &amp; Verified Reviews</div>
+            <div class="form-group-grid">
+              <div>
+                <label class="fab-input-label">Rating (e.g. 4.9)</label>
+                <input type="number" step="0.1" id="fabRating" class="fab-input-field" value="4.9" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+              <div>
+                <label class="fab-input-label">Verified Installations Count</label>
+                <input type="number" id="fabReviews" class="fab-input-field" value="42" autocomplete="off" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Live Storefront Preview -->
+          <div>
+            <div class="live-preview-box">
+              <span style="font-size: 0.72rem; font-weight: 800; background: black; color: white; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">
+                👁️ Live Customer Storefront Preview
+              </span>
+
+              <!-- Live Card Preview -->
+              <div style="margin-top: 14px; background: white; border-radius: 12px; border: 1px solid lightgray; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                <div style="position: relative; height: 190px; background: whitesmoke;">
+                  <img id="prevCardImg" src="../assets/images/image.png" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                  <span id="prevCardBadge" style="position: absolute; top: 10px; left: 10px; background: var(--admin-fab-red); color: white; font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 4px;">BEST SELLER</span>
+                </div>
+                <div style="padding: 14px;">
+                  <span id="prevCardCat" style="font-size: 0.72rem; text-transform: uppercase; color: gray; font-weight: 800; display: block;">ALUMINIUM WINDOWS</span>
+                  <h4 id="prevCardTitle" style="margin: 4px 0 6px; font-size: 1rem; font-weight: 800; color: black;">Sample Model Title</h4>
+                  <div style="margin-top: 6px;">
+                    <span id="prevCardUnit" style="font-size: 0.82rem; font-weight: 700; color: slategray; background: whitesmoke; border: 1px solid lightgray; padding: 3px 8px; border-radius: 4px; display: inline-block;">Unit: Per Sq. Ft.</span>
+                  </div>
+                  <div id="prevCardStock" style="margin-top: 8px; font-size: 0.72rem; font-weight: 700; color: forestgreen; background: honeydew; padding: 2px 6px; border-radius: 4px; display: inline-block;">
+                    ● Ready to Fabricate
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Specifications Table Preview -->
+              <h5 style="margin: 18px 0 8px; font-size: 0.85rem; font-weight: 800; color: black;">
+                Architectural Specs Table Preview:
+              </h5>
+              <table class="preview-table">
+                <tr>
+                  <td>Alloy Profile</td>
+                  <td id="prevSpecProfile">Jindal 6063-T6 Architectural Grade</td>
+                </tr>
+                <tr>
+                  <td>Glass System</td>
+                  <td id="prevSpecGlass">5mm Saint-Gobain Toughened</td>
+                </tr>
+                <tr>
+                  <td>Hardware</td>
+                  <td id="prevSpecHardware">SS-304 Heavy Bearing Rollers</td>
+                </tr>
+                <tr>
+                  <td>Gaskets</td>
+                  <td id="prevSpecGaskets">EPDM Rubber Woolpile</td>
+                </tr>
+                <tr>
+                  <td>Mesh Integration</td>
+                  <td id="prevSpecMesh">SS-304 Wire Mesh Track</td>
+                </tr>
+                <tr>
+                  <td>Warranty</td>
+                  <td id="prevSpecWarranty">10 Years Powder Coating Guarantee</td>
+                </tr>
+              </table>
+
+              <!-- Live Finishes Pills Preview -->
+              <div style="margin-top: 12px;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: gray; display: block; margin-bottom: 5px;">Finishes Scheme:</span>
+                <div id="prevFinishesPills" style="display: flex; gap: 4px; flex-wrap: wrap;"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-fabrication-footer">
+          <button type="button" onclick="closeFabModal()" class="action-btn-sm" style="padding: 10px 20px; font-weight: 700;">Cancel</button>
+          <button type="submit" id="saveFabBtn" class="btn btn-red" style="padding: 10px 26px; font-weight: 800; border-radius: 8px;">
+            💾 Save &amp; Publish Fabrication Model
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    const FAB_CATEGORIES = ['windows', 'doors', 'gates', 'mirrors', 'partitions', 'railings', 'shower', 'aluminium', 'steel-work'];
+    
+    const FAB_CATEGORY_NAMES = {
+      windows: 'Aluminium Windows',
+      doors: 'Designer Doors',
+      gates: 'Main Gates',
+      mirrors: 'LED & Smart Mirrors',
+      partitions: 'Glass Partitions',
+      railings: 'SS & Glass Railings',
+      shower: 'Shower Cubicles',
+      aluminium: 'Aluminium Facades',
+      'steel-work': 'Structural Steel Work'
+    };
+
+    const FAB_DEFAULT_IMAGES = {
+      windows: '../assets/images/products/window-slider-1.jpg',
+      doors: '../assets/images/products/door-patio-1.jpg',
+      gates: '../assets/images/products/gate-compound-1.jpg',
+      mirrors: '../assets/images/products/mirror-vanity-led-1.jpg',
+      partitions: '../assets/images/products/partition-acoustic-1.jpg',
+      railings: '../assets/images/products/railing-staircase-1.jpg',
+      shower: '../assets/images/products/shower-corner-cubicle-1.jpg',
+      aluminium: '../assets/images/products/aluminium-curtainwall-1.jpg',
+      'steel-work': '../assets/images/products/steel-shed-structure-1.jpg'
+    };
+
+    let allFabProducts = [];
+    let currentFilter = 'all';
+    let currentUploadedPhotos = [];
+
+    function resolveAdminImg(src, cat = 'windows') {
+      if (!src) return FAB_DEFAULT_IMAGES[cat] || '../assets/images/image.png';
+      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:') || src.startsWith('blob:')) return src;
+      return '../' + src.replace(/^(\.\.\/)+/, '').replace(/^(\.\/)+/, '').replace(/^\//, '');
+    }
+
+    async function loadFabricationStudio() {
+      const all = await fetchAdminProductsFromDB();
+      allFabProducts = all.filter(p => FAB_CATEGORIES.includes(p.category));
+      updateCategoryCounts();
+      renderFabTable();
+    }
+
+    function updateCategoryCounts() {
+      document.getElementById('countAll').textContent = allFabProducts.length;
+      document.getElementById('countWindows').textContent = allFabProducts.filter(p => p.category === 'windows').length;
+      document.getElementById('countDoors').textContent = allFabProducts.filter(p => p.category === 'doors').length;
+      document.getElementById('countGates').textContent = allFabProducts.filter(p => p.category === 'gates').length;
+      document.getElementById('countMirrors').textContent = allFabProducts.filter(p => p.category === 'mirrors').length;
+      document.getElementById('countPartitions').textContent = allFabProducts.filter(p => p.category === 'partitions').length;
+      document.getElementById('countRailings').textContent = allFabProducts.filter(p => p.category === 'railings').length;
+      document.getElementById('countShower').textContent = allFabProducts.filter(p => p.category === 'shower').length;
+      document.getElementById('countAluminium').textContent = allFabProducts.filter(p => p.category === 'aluminium').length;
+      document.getElementById('countSteel').textContent = allFabProducts.filter(p => p.category === 'steel-work').length;
+    }
+
+    function setFabricationFilter(cat, btn) {
+      currentFilter = cat;
+      document.querySelectorAll('.fab-pill-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderFabTable();
+    }
+
+    function handleSearchFilter() {
+      renderFabTable();
+    }
+
+    function renderFabTable() {
+      const query = (document.getElementById('fabSearchInput').value || '').toLowerCase().trim();
+      let filtered = allFabProducts;
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(p => p.category === currentFilter);
+      }
+
+      if (query) {
+        filtered = filtered.filter(p => 
+          (p.title && p.title.toLowerCase().includes(query)) ||
+          (p.id && p.id.toLowerCase().includes(query)) ||
+          (p.aluminiumProfile && p.aluminiumProfile.toLowerCase().includes(query)) ||
+          (p.glassSystem && p.glassSystem.toLowerCase().includes(query)) ||
+          (p.category && p.category.toLowerCase().includes(query))
+        );
+      }
+
+      document.getElementById('visibleCountText').textContent = filtered.length;
+      const tbody = document.getElementById('fabProductsTableBody');
+
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 45px; color: gray;">
+              <i class="bi bi-inbox" style="font-size: 2.2rem; color: lightgray; display: block; margin-bottom: 8px;"></i>
+              Koi fabrication model nahi mila. "Add New Fabrication Model" par click karke naya model add karein.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        const prodId = p.id || p._id;
+        const inStock = p.inStock !== false;
+        const profileSpec = p.aluminiumProfile || p.woodType || 'Jindal 6063-T6 Virgin Alloy';
+        const glassSpec = p.glassSystem || 'Saint-Gobain Toughened Safety Glass';
+        const imgSrc = resolveAdminImg(p.image, p.category);
+
+        return `
+          <tr style="border-bottom: 1px solid lightgray; font-size: 0.86rem;">
+            <td style="padding: 12px 14px;">
+              <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid lightgray; background: whitesmoke;">
+                <img src="${imgSrc}" alt="${p.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='../assets/images/image.png';">
+              </div>
+            </td>
+            <td style="padding: 12px 14px;">
+              <strong style="color: black; font-size: 0.92rem; display: block;">${p.title}</strong>
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 3px;">
+                <span class="fab-metric-badge" style="background: aliceblue; color: darkblue;">${FAB_CATEGORY_NAMES[p.category] || p.category}</span>
+                <span style="font-family: monospace; font-size: 0.72rem; color: gray;">#${prodId}</span>
+                ${p.badge ? `<span style="font-size: 0.68rem; background: mistyrose; color: darkred; font-weight: 800; padding: 2px 6px; border-radius: 4px;">${p.badge}</span>` : ''}
+              </div>
+            </td>
+            <td style="padding: 12px 14px; max-width: 220px; color: darkslategray; font-size: 0.82rem;">
+              ${profileSpec}
+            </td>
+            <td style="padding: 12px 14px; max-width: 200px; color: darkslategray; font-size: 0.82rem;">
+              ${glassSpec}
+            </td>
+            <td style="padding: 12px 14px; white-space: nowrap;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: darkslategray;">${p.rateUnit || 'On Quotation'}</span>
+            </td>
+            <td style="padding: 12px 14px; white-space: nowrap;">
+              ${inStock 
+                ? `<span style="color: darkgreen; background: honeydew; border: 1px solid lightgreen; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px;">● In Stock</span>`
+                : `<span style="color: darkred; background: mistyrose; border: 1px solid lightcoral; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px;">✕ Out of Stock</span>`}
+            </td>
+            <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
+              <div style="display: inline-flex; gap: 6px;">
+                <button onclick="openEditAluminiumModal('${prodId}')" class="action-btn-sm" style="background: aliceblue; color: dodgerblue; border-color: lightblue; font-weight: 700; padding: 6px 10px;">
+                  ✏️ Edit
+                </button>
+                <a href="../Aluminium products/${p.category}.html?id=${encodeURIComponent(prodId)}" target="_blank" class="action-btn-sm" style="padding: 6px 10px;" title="View Live Customer Page">
+                  👁️ Live
+                </a>
+                <button onclick="handleDeleteFabrication('${prodId}')" class="action-btn-sm delete" style="padding: 6px 10px;" title="Delete">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Modal Operations
+    function openCreateAluminiumModal() {
+      document.getElementById('modalHeadingText').innerHTML = '✨ Add New Aluminium &amp; Steel Model';
+      document.getElementById('modalSubheadingText').textContent = 'Enter complete A-to-Z technical specifications for architectural fabrication';
+      document.getElementById('saveFabBtn').innerHTML = '💾 Save &amp; Publish Fabrication Model';
+      document.getElementById('fabEditingId').value = '';
+
+      // Clean empty fields - No auto-suggestion
+      document.getElementById('fabTitle').value = '';
+      document.getElementById('fabCategory').value = currentFilter !== 'all' ? currentFilter : 'windows';
+      document.getElementById('fabBadge').value = '';
+      document.getElementById('fabRateUnit').value = '';
+      document.getElementById('fabInStock').value = 'true';
+
+      document.getElementById('fabProfile').value = '';
+      document.getElementById('fabGlass').value = '';
+      document.getElementById('fabHardware').value = '';
+      document.getElementById('fabGaskets').value = '';
+      document.getElementById('fabMesh').value = '';
+      document.getElementById('fabWarranty').value = '';
+      document.getElementById('fabFinishes').value = '';
+      document.getElementById('fabDesc').value = '';
+      document.getElementById('fabRating').value = '5.0';
+      document.getElementById('fabReviews').value = '1';
+
+      currentUploadedPhotos = [];
+      renderUploadedPhotosStrip();
+      updateLivePreview();
+      document.getElementById('fabModalOverlay').style.display = 'flex';
+    }
+
+    function openEditAluminiumModal(productId) {
+      const prod = allFabProducts.find(p => (p.id === productId || p._id === productId));
+      if (!prod) {
+        alert('Product details not found!');
+        return;
+      }
+
+      document.getElementById('modalHeadingText').innerHTML = `✏️ Edit Fabrication Model <span style="font-size: 0.8rem; background: aliceblue; color: dodgerblue; padding: 2px 8px; border-radius: 4px; margin-left: 6px;">#${productId}</span>`;
+      document.getElementById('modalSubheadingText').textContent = 'Modify A-to-Z profile gauge, glass type, hardware, and finishes with live preview';
+      document.getElementById('saveFabBtn').innerHTML = '💾 Update Fabrication Model';
+      document.getElementById('fabEditingId').value = productId;
+
+      document.getElementById('fabTitle').value = prod.title || '';
+      document.getElementById('fabCategory').value = prod.category || 'windows';
+      document.getElementById('fabBadge').value = prod.badge || '';
+      document.getElementById('fabRateUnit').value = prod.rateUnit || 'Per Unit';
+      document.getElementById('fabInStock').value = prod.inStock !== false ? 'true' : 'false';
+
+      document.getElementById('fabProfile').value = prod.aluminiumProfile || prod.woodType || '';
+      document.getElementById('fabGlass').value = prod.glassSystem || '';
+      document.getElementById('fabHardware').value = prod.hardwareRollers || '';
+      document.getElementById('fabGaskets').value = prod.weatherGaskets || '';
+      document.getElementById('fabMesh').value = prod.mosquitoMesh || '';
+      document.getElementById('fabWarranty').value = prod.warranty || '10 Years Coating | 5 Years Hardware';
+
+      const finishes = Array.isArray(prod.finishes) ? prod.finishes.join(', ') : (Array.isArray(prod.finish) ? prod.finish.join(', ') : '');
+      document.getElementById('fabFinishes').value = finishes;
+      document.getElementById('fabDesc').value = prod.description || '';
+      document.getElementById('fabRating').value = prod.rating || 4.9;
+      document.getElementById('fabReviews').value = prod.reviewCount || 42;
+
+      if (Array.isArray(prod.images) && prod.images.length > 0) {
+        currentUploadedPhotos = [...prod.images];
+      } else if (prod.image) {
+        currentUploadedPhotos = [prod.image];
+      } else {
+        currentUploadedPhotos = [];
+      }
+
+      renderUploadedPhotosStrip();
+      updateLivePreview();
+      document.getElementById('fabModalOverlay').style.display = 'flex';
+    }
+
+    function closeFabModal() {
+      document.getElementById('fabModalOverlay').style.display = 'none';
+    }
+
+    // Category change handler - Auto suggestions disabled so inputs are never overwritten
+    function handleCategoryChange() {
+      updateLivePreview();
+    }
+
+    // Photo Upload & Compression
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function (event) {
+          const rawImg = new Image();
+          rawImg.onerror = reject;
+          rawImg.onload = function () {
+            const maxDim = 800;
+            let w = rawImg.width;
+            let h = rawImg.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(rawImg, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+          };
+          rawImg.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleFabFileUpload(e) {
+      const files = Array.from(e.target.files || []);
+      for (const f of files) {
+        try {
+          const compressed = await compressImageFile(f);
+          if (compressed) currentUploadedPhotos.push(compressed);
+        } catch (err) {
+          console.warn('Image compress error:', err);
+        }
+      }
+      e.target.value = '';
+      renderUploadedPhotosStrip();
+      updateLivePreview();
+    }
+
+    function renderUploadedPhotosStrip() {
+      const strip = document.getElementById('fabPhotoGalleryStrip');
+      if (currentUploadedPhotos.length === 0) {
+        strip.innerHTML = '<span style="font-size: 0.75rem; color: gray; font-style: italic;">No custom photos uploaded yet. Category default will be used.</span>';
+        return;
+      }
+      strip.innerHTML = currentUploadedPhotos.map((src, idx) => `
+        <div style="position: relative; flex: 0 0 65px; height: 65px; border-radius: 6px; overflow: hidden; border: 2px solid ${idx === 0 ? 'var(--admin-fab-red)' : 'lightgray'};">
+          <img src="${resolveAdminImg(src)}" style="width: 100%; height: 100%; object-fit: cover;">
+          <button type="button" onclick="removeFabPhoto(${idx})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+          ${idx === 0 ? `<span style="position: absolute; bottom: 0; inset-inline: 0; background: var(--admin-fab-red); color: white; font-size: 8px; text-align: center; font-weight: 800;">COVER</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function removeFabPhoto(idx) {
+      currentUploadedPhotos.splice(idx, 1);
+      renderUploadedPhotosStrip();
+      updateLivePreview();
+    }
+
+    // Live Preview Synchronizer
+    function updateLivePreview() {
+      const title = document.getElementById('fabTitle').value.trim() || 'Sample Architectural Model';
+      const cat = document.getElementById('fabCategory').value;
+      const catName = FAB_CATEGORY_NAMES[cat] || cat;
+      const badge = document.getElementById('fabBadge').value.trim();
+      const rateUnit = document.getElementById('fabRateUnit').value.trim();
+      const inStock = document.getElementById('fabInStock').value === 'true';
+
+      const coverPhoto = currentUploadedPhotos[0] || FAB_DEFAULT_IMAGES[cat];
+      document.getElementById('prevCardImg').src = resolveAdminImg(coverPhoto, cat);
+      document.getElementById('prevCardCat').textContent = catName;
+      document.getElementById('prevCardTitle').textContent = title;
+
+      const unitEl = document.getElementById('prevCardUnit');
+      if (unitEl) {
+        unitEl.textContent = rateUnit ? `Unit: ${rateUnit}` : 'Rate: On Quotation';
+      }
+
+      const badgeEl = document.getElementById('prevCardBadge');
+      if (badge) {
+        badgeEl.textContent = badge;
+        badgeEl.style.display = 'inline-block';
+      } else {
+        badgeEl.style.display = 'none';
+      }
+
+      const stockEl = document.getElementById('prevCardStock');
+      if (inStock) {
+        stockEl.textContent = '● Ready to Fabricate / In Stock';
+        stockEl.style.color = 'forestgreen';
+        stockEl.style.background = 'honeydew';
+      } else {
+        stockEl.textContent = '✕ Currently Unavailable';
+        stockEl.style.color = 'darkred';
+        stockEl.style.background = 'mistyrose';
+      }
+
+      // Table specs preview
+      document.getElementById('prevSpecProfile').textContent = document.getElementById('fabProfile').value || '-';
+      document.getElementById('prevSpecGlass').textContent = document.getElementById('fabGlass').value || '-';
+      document.getElementById('prevSpecHardware').textContent = document.getElementById('fabHardware').value || '-';
+      document.getElementById('prevSpecGaskets').textContent = document.getElementById('fabGaskets').value || '-';
+      document.getElementById('prevSpecMesh').textContent = document.getElementById('fabMesh').value || '-';
+      document.getElementById('prevSpecWarranty').textContent = document.getElementById('fabWarranty').value || '-';
+
+      // Finishes pills preview
+      const finishesStr = document.getElementById('fabFinishes').value;
+      const pillsContainer = document.getElementById('prevFinishesPills');
+      if (finishesStr) {
+        const arr = finishesStr.split(',').map(f => f.trim()).filter(Boolean);
+        pillsContainer.innerHTML = arr.map(f => `<span style="font-size: 0.72rem; background: lightgray; color: black; padding: 2px 8px; border-radius: 12px; font-weight: 600;">${f}</span>`).join('');
+      } else {
+        pillsContainer.innerHTML = '<span style="font-size: 0.72rem; color: gray;">Standard Factory Finishes</span>';
+      }
+    }
+
+    // Submit / Save
+    async function handleFabFormSubmit(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveFabBtn');
+      const originalText = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '⏳ Saving to Database...';
+
+      const editingId = document.getElementById('fabEditingId').value;
+      const cat = document.getElementById('fabCategory').value;
+      const finishesStr = document.getElementById('fabFinishes').value;
+      const finishArray = finishesStr.split(',').map(f => f.trim()).filter(Boolean);
+      const defaultImg = FAB_DEFAULT_IMAGES[cat] || '../assets/images/image.png';
+      const finalImage = currentUploadedPhotos[0] || defaultImg;
+      const finalImagesList = currentUploadedPhotos.length > 0 ? currentUploadedPhotos : [defaultImg];
+
+      const productPayload = {
+        title: document.getElementById('fabTitle').value.trim(),
+        category: cat,
+        categoryName: FAB_CATEGORY_NAMES[cat] || 'Aluminium Fabrication',
+        price: 0,
+        originalPrice: 0,
+        discount: 'On Quotation',
+        badge: document.getElementById('fabBadge').value.trim(),
+        rateUnit: document.getElementById('fabRateUnit').value.trim() || 'Per Unit',
+        inStock: document.getElementById('fabInStock').value === 'true',
+        isFeatured: true,
+        image: finalImage,
+        images: finalImagesList,
+        aluminiumProfile: document.getElementById('fabProfile').value.trim(),
+        woodType: document.getElementById('fabProfile').value.trim(), // for backwards compatibility
+        glassSystem: document.getElementById('fabGlass').value.trim(),
+        hardwareRollers: document.getElementById('fabHardware').value.trim(),
+        weatherGaskets: document.getElementById('fabGaskets').value.trim(),
+        mosquitoMesh: document.getElementById('fabMesh').value.trim(),
+        warranty: document.getElementById('fabWarranty').value.trim() || '10 Years Quality Guarantee',
+        finishes: finishArray.length > 0 ? finishArray : ['Standard Architectural Finish'],
+        finish: finishArray.length > 0 ? finishArray : ['Standard Architectural Finish'],
+        dimensions: 'Custom Made-to-Measure (Free Site Survey)',
+        rating: Number(document.getElementById('fabRating').value) || 4.9,
+        reviewCount: Number(document.getElementById('fabReviews').value) || 42,
+        description: document.getElementById('fabDesc').value.trim() || 'Premium architectural heavy aluminium fabrication product.'
+      };
+
+      try {
+        if (editingId) {
+          productPayload.id = editingId;
+          await updateProductInDB(editingId, productPayload);
+          alert(`✅ Fabrication Model #${editingId} successfully updated with complete A-to-Z specifications!`);
+        } else {
+          const prefixMap = {
+            windows: 'rf-win-',
+            doors: 'rf-dor-',
+            gates: 'rf-gat-',
+            mirrors: 'rf-mir-',
+            partitions: 'rf-par-',
+            railings: 'rf-ral-',
+            shower: 'rf-shw-',
+            aluminium: 'rf-alm-',
+            'steel-work': 'rf-stl-'
+          };
+          const newId = (prefixMap[cat] || 'rf-fab-') + Date.now().toString().slice(-4);
+          productPayload.id = newId;
+          await createProductInDB(productPayload);
+          alert(`🎉 New ${FAB_CATEGORY_NAMES[cat]} model created successfully in database! ID: #${newId}`);
+        }
+
+        closeFabModal();
+        await loadFabricationStudio();
+      } catch (err) {
+        console.error('Error saving fabrication product:', err);
+        alert('Error saving product: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+      }
+    }
+
+    async function handleDeleteFabrication(id) {
+      if (confirm(`Are you sure you want to permanently delete Fabrication Model #${id}?`)) {
+        try {
+          await deleteProductFromDB(id);
+          alert(`🗑️ Model #${id} permanently deleted.`);
+          await loadFabricationStudio();
+        } catch (e) {
+          alert('Error deleting product: ' + e.message);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadFabricationStudio();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('edit');
+      const action = urlParams.get('action');
+      if (editId) {
+        setTimeout(() => openEditAluminiumModal(editId), 150);
+      } else if (action === 'new') {
+        setTimeout(() => openCreateAluminiumModal(), 150);
+      }
+    });
+  </script>
+</body>
+
+</html>

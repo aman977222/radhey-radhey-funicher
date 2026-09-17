@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Directory & Accounts — Radhey Radhey Furniture Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .search-input-box {
+      padding: 9px 14px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      min-width: 260px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input-box:focus {
+      border-color: red;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+    .btn-delete-user {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: snow;
+      color: red;
+      border: 1px solid lightpink;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-delete-user:hover {
+      background: red;
+      color: white;
+      border-color: red;
+    }
+    .role-badge-user {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: aliceblue;
+      color: dodgerblue;
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif; color: white;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block;">RADHEY RADHEY</strong>
+        <span class="badge" id="adminRoleBadge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" style="color: darkred; font-weight: 700;">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html" class="active">👥 Customers Directory</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="font-size: 1.3rem; font-weight: 800; margin: 0;">Registered Customers Directory</h2>
+        <p style="font-size: 0.85rem; color: gray; margin: 3px 0 0 0;">Manage customer accounts, verify delivery details & remove inactive users</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="background: mistyrose; color: darkred; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800;">
+          👥 Total Users: <span id="totalUsersCount">0</span>
+        </span>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-table-card">
+        <div class="admin-table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700;">All Registered Accounts</h3>
+            <p style="font-size: 0.8rem; color: gray;">Real-time sync with Firebase Firestore Cloud & local database</p>
+          </div>
+          <div>
+            <input type="text" id="userSearchInput" class="search-input-box" placeholder="🔍 Search name, phone, email, city..." oninput="handleFilterUsers()">
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Indicator Badge -->
+        <div class="mobile-table-scroll-hint">
+          <span>📱 <strong>Mobile View:</strong> Customer accounts & actions dekhne ke liye scroll karein</span>
+          <span class="scroll-arrow-badge">Scroll Horizontally ➔</span>
+        </div>
+
+        <div class="admin-table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 190px;">Customer Profile</th>
+                <th style="min-width: 140px;">Phone / WhatsApp</th>
+                <th style="min-width: 180px;">Email Address</th>
+                <th style="min-width: 130px;">City / Region</th>
+                <th style="min-width: 130px;">Account Role</th>
+                <th style="min-width: 130px; text-align: right;">Action / Delete</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // AUTH GUARD: Require Admin access
+    const currentAdmin = enforceAdminAuth();
+    let allFetchedUsers = [];
+
+    async function loadCustomers() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: gray;">Loading user accounts from database...</td></tr>`;
+
+      try {
+        const users = await fetchAdminUsersFromDB();
+        allFetchedUsers = Array.isArray(users) ? users : [];
+        renderUsersList(allFetchedUsers);
+      } catch (err) {
+        console.error('loadCustomers error:', err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red; padding: 25px;">Failed to load users: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderUsersList(users) {
+      const tbody = document.getElementById('usersTableBody');
+      const countEl = document.getElementById('totalUsersCount');
+      if (countEl) countEl.textContent = users.length;
+
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: gray;">
+              <div style="font-size: 2.2rem; margin-bottom: 8px;">👥</div>
+              <strong style="color: black; display: block; font-size: 1.05rem;">No user accounts found</strong>
+              <small style="color: gray;">Registered users and staff members will appear here automatically.</small>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => {
+        const name = u.name || 'Customer';
+        const email = u.email || 'No email';
+        const phone = u.phone ? u.phone.toString() : '';
+        const city = u.city || 'Rajasthan';
+        const address = u.address ? `<div style="font-size: 0.75rem; color: gray; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${u.address}">📍 ${u.address}</div>` : '';
+        const role = (u.role || 'user').toLowerCase();
+        const isStaff = role === 'admin' || role === 'superadmin';
+        const identifier = u.id || u.email || u.phone;
+        const initial = name.slice(0, 2).toUpperCase();
+
+        const isCurrentSession = currentAdmin && (u.email === currentAdmin.email || (phone && phone === currentAdmin.phone));
+
+        return `
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 34px; height: 34px; border-radius: 50%; background: ${isStaff ? 'mistyrose' : 'whitesmoke'}; color: ${isStaff ? 'red' : 'slategray'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.82rem;">
+                  ${isStaff ? '🛡️' : initial}
+                </div>
+                <div>
+                  <strong style="color: black; display: block;">${name}</strong>
+                  ${address}
+                </div>
+              </div>
+            </td>
+            <td>
+              ${phone ? `
+                <a href="https://wa.me/91${phone}" style="color: green; font-weight: 600; text-decoration: none; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 4px;">
+                  💬 +91 ${phone}
+                </a>
+              ` : '<span style="color: gray;">N/A</span>'}
+            </td>
+            <td>
+              <span style="font-size: 0.88rem; color: darkslategray;">${email}</span>
+            </td>
+            <td>
+              <span style="font-size: 0.88rem; color: darkslategray;">${city}</span>
+            </td>
+            <td>
+              <span class="role-badge-user" style="${isStaff ? 'background: bisque; color: brown;' : ''}">
+                ${isStaff ? (role === 'superadmin' ? '👑 Super Admin' : '🛡️ Admin') : '👤 Customer'}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              ${isCurrentSession ? `
+                <span style="font-size: 0.78rem; color: gray; font-weight: 700; background: whitesmoke; padding: 4px 8px; border-radius: 4px;">
+                  🔒 Active Session
+                </span>
+              ` : `
+                <button type="button" onclick="handleDeleteUser('${identifier}', '${name.replace(/'/g, "\\'")}')" class="btn-delete-user" title="Permanently delete user account">
+                  🗑️ Delete User
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleFilterUsers() {
+      const q = (document.getElementById('userSearchInput').value || '').toLowerCase().trim();
+      if (!q) {
+        renderUsersList(allFetchedUsers);
+        return;
+      }
+      const filtered = allFetchedUsers.filter(u => {
+        const name = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const phone = (u.phone || '').toString().toLowerCase();
+        const city = (u.city || '').toLowerCase();
+        return name.includes(q) || email.includes(q) || phone.includes(q) || city.includes(q);
+      });
+      renderUsersList(filtered);
+    }
+
+    async function handleDeleteUser(identifier, userName) {
+      if (!confirm(`Kya aap sach me "${userName}" (${identifier}) ka account delete karna chahte hain?\n\nIs customer ka account database aur local system se permanently hata diya jayega.`)) {
+        return;
+      }
+
+      try {
+        const res = await deleteCustomerAccountFromDB(identifier);
+        if (res && res.success) {
+          alert(`✅ Account for "${userName}" successfully deleted.`);
+          await loadCustomers();
+        } else {
+          alert((res && res.message) || 'Could not delete user account.');
+        }
+      } catch (err) {
+        console.error('handleDeleteUser error:', err);
+        alert('Error deleting user: ' + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setupAdminNavigation();
+      loadCustomers();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Radhey Radhey Furniture & Handicraft — Production Security Rules
+    
+    // 1. PRODUCTS: Anyone can read product catalog to shop and browse
+    // Modifications require valid product structure
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.title is string 
+                            && request.resource.data.title.size() > 0;
+      allow delete: if true;
+    }
+    
+    // 2. ORDERS: Customers can create orders with valid data
+    // Deleting orders is strictly forbidden for security
+    match /orders/{orderId} {
+      allow create: if request.resource.data.orderId != null;
+      allow read: if true;
+      allow update: if request.resource.data.orderId != null;
+      allow delete: if false; // Strict: Orders can NEVER be deleted from public web
+    }
+
+    // 3. INQUIRIES: Customers can submit furniture custom inquiries
+    match /inquiries/{inquiryId} {
+      allow create: if request.resource.data.customerName is string;
+      allow read: if true;
+      allow update, delete: if true;
+    }
+
+    // 4. USERS: Customer Accounts & Registrations
+    match /users/{userId} {
+      allow create: if request.resource.data.name is string 
+                    && (request.resource.data.phone is string || request.resource.data.email is string);
+      allow read, update: if true;
+      allow delete: if true;
+    }
+
+    // 5. SITE SETTINGS: Public website details (Phone, Address, Banner)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 6. CARTS: Cross-device synced user shopping carts
+    match /carts/{userId} {
+      allow read, write: if true;
+    }
+
+    // 7. WISHLISTS: Cross-device synced user wishlists
+    match /wishlists/{userId} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Radhey Radhey Furniture & Handicraft</title>
+  <meta name="description" content="Secure checkout for handcrafted solid wood furniture and handicrafts.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 30px;
+      margin: 40px auto 70px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 25px;
+    }
+
+    .form-card h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: black;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: gray;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 11px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      background: white;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      background: white;
+      border-color: var(--primary-red);
+      box-shadow: 0 0 0 2px var(--red-glow);
+    }
+
+    .payment-option {
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all var(--transition-fast);
+    }
+
+    .payment-option.active {
+      border-color: var(--primary-red);
+      background: rgba(200, 16, 46, 0.03);
+    }
+
+    .payment-option input {
+      accent-color: var(--primary-red);
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Success Screen */
+    .success-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(6px);
+      z-index: 5000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .success-box {
+      background: white;
+      max-width: 550px;
+      width: 100%;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      border-top: 6px solid green;
+    }
+
+    @media (max-width: 860px) {
+      .checkout-layout {
+        grid-template-columns: 1fr;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-group.full-width {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="cart.html" class="action-btn">
+          <i class="bi bi-cart3"></i>
+          <span>Back to Cart</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CHECKOUT CONTENT ================= -->
+  <div class="container">
+    <div style="margin: 30px 0 20px;">
+      <h1 style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 800;">
+        Secure <span style="color: var(--primary-red);">Checkout</span>
+      </h1>
+      <p style="color: gray;">Please provide your delivery address for safe wooden furniture transit</p>
+    </div>
+
+    <form id="checkoutForm" onsubmit="handlePlaceOrder(event)">
+      <div class="checkout-layout">
+        <!-- LEFT: Address & Payment Details -->
+        <div>
+          <!-- Customer Information -->
+          <div class="form-card">
+            <h3><span>👤</span> Customer & Delivery Details</h3>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="custName" placeholder="e.g. Ramesh Chandra" required>
+              </div>
+
+              <div class="form-group">
+                <label>Mobile Number (WhatsApp) *</label>
+                <input type="tel" id="custPhone" placeholder="10-digit mobile number" required>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Email Address</label>
+                <input type="email" id="custEmail" placeholder="name@email.com (For digital invoice)">
+              </div>
+
+              <div class="form-group full-width">
+                <label>Full Delivery / Street Address *</label>
+                <textarea id="custAddress" rows="2" placeholder="House/Flat No, Landmark, Colony, Street" required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>City *</label>
+                <input type="text" id="custCity" placeholder="City / Town" required>
+              </div>
+
+              <div class="form-group">
+                <label>State *</label>
+                <input type="text" id="custState" placeholder="State (e.g. Rajasthan)" required value="Rajasthan">
+              </div>
+
+              <div class="form-group">
+                <label>Pincode *</label>
+                <input type="text" id="custPin" placeholder="6-digit Pincode" required pattern="[0-9]{6}">
+              </div>
+
+              <div class="form-group full-width">
+                <label>Special Wood Polish or Delivery Instructions (Optional)</label>
+                <input type="text" id="custNote" placeholder="e.g. Call before delivery, extra gloss coating...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Options -->
+          <div class="form-card">
+            <h3><span>💳</span> Select Payment Method</h3>
+
+            <label class="payment-option active">
+              <input type="radio" name="paymentMethod" value="COD" checked>
+              <div>
+                <strong>Cash on Delivery / Pay upon Workshop Delivery</strong>
+                <p style="font-size: 0.8rem; color: gray; margin: 2px 0 0;">Inspect your solid wood furniture upon delivery and pay balance at your doorstep.</p>
+              </div>
+            </label>
+
+            <!-- <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="UPI">
+              <div>
+                <strong>Instant UPI / QR Code (Google Pay, PhonePe, Paytm)</strong>
+                <p style="font-size: 0.8rem; color: gray; margin: 2px 0 0;">Fast & direct payment with instant order verification badge.</p>
+              </div>
+            </label>
+
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="Card">
+              <div>
+                <strong>Credit Card / Debit Card / Netbanking</strong>
+                <p style="font-size: 0.8rem; color: gray; margin: 2px 0 0;">All major Indian banks supported with zero extra transaction fees.</p>
+              </div>
+            </label> -->
+          </div>
+        </div>
+
+        <!-- RIGHT: Order Summary -->
+        <div>
+          <div class="form-card" style="position: sticky; top: 90px;">
+            <h3 style="border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">Order Summary</h3>
+            
+            <div id="checkoutItemsPreview" style="max-height: 280px; overflow-y: auto; margin-bottom: 16px;">
+              <!-- Populated by JS -->
+            </div>
+
+            <div style="border-top: 1px solid var(--border-light); padding-top: 14px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: gray;">
+                <span>Subtotal</span>
+                <strong id="chkSubtotal">₹0</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: green;">
+                <span>Pan-jaipur Transit & Delivery</span>
+                <strong>FREE</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 800; color: black; border-top: 2px solid var(--border-light); padding-top: 12px; margin-top: 10px;">
+                <span>Total Due:</span>
+                <span id="chkTotal" style="color: var(--primary-red);">₹0</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-red btn-block" style="margin-top: 24px; padding: 16px; font-size: 1.1rem;">
+              Confirm & Place Order →
+            </button>
+
+            <p style="text-align: center; font-size: 0.78rem; color: gray; margin-top: 14px;">
+              🔒 100% Genuine Solid Wood with Certificate & 10-Year Warranty.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= SUCCESS CONFIRMATION MODAL ================= -->
+  <div id="orderSuccessModal" class="success-modal">
+    <div class="success-box">
+      <div style="font-size: 4rem; margin-bottom: 15px;">🎉</div>
+      <h2 style="font-family: var(--font-serif); font-size: 2rem; color: black; margin-bottom: 8px;">Order Successfully Placed!</h2>
+      <p style="color: gray; font-size: 0.95rem; margin-bottom: 20px;">
+        Dhanyawad! Aapka order Radhey Radhey Furniture & Handicraft ke karigaron ko mil chuka hai.
+      </p>
+
+      <div style="background: white; padding: 16px; border-radius: 10px; margin-bottom: 25px; text-align: left; font-size: 0.9rem; border: 1px solid lightgray;">
+        <p><strong>Order ID:</strong> <span id="confirmedOrderId" style="color: var(--primary-red); font-weight: 800;">#RR-84920</span></p>
+        <p><strong>Payment Mode:</strong> <span id="confirmedPaymentMode">Cash on Delivery</span></p>
+        <p><strong>Estimated Dispatch:</strong> 3-5 Working Days with Safe Crating</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a id="whatsappOrderBtn" href="#" class="btn btn-dark" style="background: green; color: white; border: none; font-size: 0.95rem;">
+          💬 Send Order Details to WhatsApp Support
+        </a>
+        <a href="user/dashboard.html" class="btn btn-dark">
+          View My Orders & Tracking
+        </a>
+        <a href="index.html" style="color: gray; font-size: 0.85rem; margin-top: 6px;">
+          Return to Homepage
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    const ORDERS_STORAGE_KEY = 'radha_furniture_orders_v1';
+
+    function getOrders() {
+      try {
+        const d = localStorage.getItem(ORDERS_STORAGE_KEY);
+        return d ? JSON.parse(d) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveOrder(order) {
+      const orders = getOrders();
+      orders.unshift(order);
+      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+    }
+
+    function renderCheckout() {
+      const cart = getCart();
+      if (cart.length === 0) {
+        alert('Your cart is empty! Please add products before checking out.');
+        window.location.href = 'shop.html';
+        return;
+      }
+
+      const preview = document.getElementById('checkoutItemsPreview');
+      preview.innerHTML = cart.map(item => `
+        <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
+          <img src="${item.image}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;">
+          <div style="flex: 1;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: black;">${item.title.slice(0, 32)}...</div>
+            <div style="font-size: 0.75rem; color: gray;">Finish: ${item.finish} | Qty: ${item.quantity}</div>
+          </div>
+          <div style="font-weight: 700; font-size: 0.9rem;">
+            ${formatPrice(item.price * item.quantity)}
+          </div>
+        </div>
+      `).join('');
+
+      const total = getCartSubtotal();
+      document.getElementById('chkSubtotal').textContent = formatPrice(total);
+      document.getElementById('chkTotal').textContent = formatPrice(total);
+    }
+
+    async function handlePlaceOrder(e) {
+      e.preventDefault();
+      const cart = getCart();
+      if (!cart || cart.length === 0) {
+        showToast('Your cart is empty! Please add products before checking out.', 'error');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Placing Order...';
+
+      try {
+        const orderId = 'RR-' + Math.floor(100000 + Math.random() * 900000);
+        const checkedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        const paymentMode = checkedMethod ? checkedMethod.value : 'Cash on Delivery (COD)';
+        const total = getCartSubtotal();
+
+        const custName = (document.getElementById('custName')?.value || '').trim();
+        let custPhone = (document.getElementById('custPhone')?.value || '').trim().replace(/[\s\-\+]/g, '');
+        if (custPhone.startsWith('91') && custPhone.length === 12) custPhone = custPhone.slice(2);
+        if (custPhone.startsWith('0') && custPhone.length === 11) custPhone = custPhone.slice(1);
+
+        const custEmail = (document.getElementById('custEmail')?.value || '').trim();
+        const custAddress = (document.getElementById('custAddress')?.value || '').trim();
+        const custCity = (document.getElementById('custCity')?.value || '').trim();
+        const custState = (document.getElementById('custState')?.value || '').trim();
+        const custPin = (document.getElementById('custPin')?.value || '').trim();
+        const custNote = (document.getElementById('custNote')?.value || '').trim();
+
+        let fullAddress = custAddress;
+        if (custCity) fullAddress += ', ' + custCity;
+        if (custState) fullAddress += ', ' + custState;
+        if (custPin) fullAddress += ' - ' + custPin;
+        if (custNote) fullAddress += ` [Note: ${custNote}]`;
+
+        const loggedCust = getLoggedInCustomer();
+        const clean10Phone = custPhone.length >= 10 ? custPhone.slice(-10) : custPhone;
+        const cleanEmail = (custEmail || '').toLowerCase().trim();
+        const userUid = (loggedCust && (loggedCust.id || loggedCust.userId || loggedCust.uid)) 
+          ? String(loggedCust.id || loggedCust.userId || loggedCust.uid) 
+          : (clean10Phone ? ('phone_' + clean10Phone) : (cleanEmail ? ('email_' + cleanEmail.replace(/[^a-z0-9]/g, '_')) : 'guest'));
+
+        const newOrder = {
+          orderId: orderId,
+          date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          customerName: custName,
+          phone: clean10Phone || custPhone,
+          email: cleanEmail,
+          userId: userUid,
+          userUid: userUid,
+          customerPhone: clean10Phone || custPhone,
+          customerEmail: cleanEmail,
+          address: fullAddress,
+          items: cart,
+          totalAmount: total,
+          paymentMode: paymentMode,
+          status: 'Confirmed',
+          createdAt: new Date().toISOString()
+        };
+
+        // Save order to DB (Local + Firestore Cloud)
+        await placeOrderInDB(newOrder);
+
+        // Setup WhatsApp update URL
+        const waText = `Namaste Radhey Radhey Furniture, I have placed order #${orderId} on your website for ${cart.map(c => c.title).join(', ')}. Total: ${formatPrice(total)} (${paymentMode}). Customer: ${newOrder.customerName}, Phone: ${newOrder.phone}.`;
+        const waBtn = document.getElementById('whatsappOrderBtn');
+        if (waBtn) {
+          waBtn.href = `https://wa.me/+919772225296?text=${encodeURIComponent(waText)}`;
+        }
+
+        // Clear Cart
+        saveCart([]);
+        updateCartBadge();
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+
+        // Show confirmation modal
+        document.getElementById('confirmedOrderId').textContent = '#' + orderId;
+        document.getElementById('confirmedPaymentMode').textContent = paymentMode;
+        document.getElementById('orderSuccessModal').style.display = 'flex';
+      } catch (err) {
+        console.error('Order placement exception:', err);
+        showToast('Error placing order: ' + (err.message || 'Please check all fields'), 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // AUTH GUARD: Require User Login to access checkout
+      const cust = getLoggedInCustomer();
+      if (!cust) {
+        window.location.replace('login.html?redirect=checkout.html');
+        return;
+      }
+
+      renderCheckout();
+
+      window.addEventListener('radha_cart_synced', () => {
+        renderCheckout();
+      });
+
+      // Auto-fill logged in customer
+      function fillCheckoutCustomer(c) {
+        if (!c) return;
+        if (c.name && !document.getElementById('custName').value) document.getElementById('custName').value = c.name;
+        if (c.phone && !document.getElementById('custPhone').value) document.getElementById('custPhone').value = c.phone;
+        if (c.email && !document.getElementById('custEmail').value) document.getElementById('custEmail').value = c.email;
+        if (c.city && !document.getElementById('custCity').value) document.getElementById('custCity').value = c.city;
+        if (c.address && !document.getElementById('custAddress').value) document.getElementById('custAddress').value = c.address;
+      }
+      fillCheckoutCustomer(cust);
+
+      window.addEventListener('radha_profile_synced', (e) => {
+        if (e.detail) {
+          fillCheckoutCustomer(e.detail);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

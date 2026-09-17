@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Products — Radhey Radhey Furniture Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    /* =======================================================
+       RICH PRODUCT DETAILS DASHBOARD MODAL STYLES
+       ======================================================= */
+    .dashboard-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 1050;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .dashboard-modal-container {
+      background: white;
+      border-radius: 16px;
+      max-width: 1140px;
+      width: 100%;
+      max-height: 92vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      border-top: 5px solid red;
+      animation: modalPopIn 0.2s ease-out;
+    }
+
+    @keyframes modalPopIn {
+      from {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .dashboard-modal-header {
+      padding: 18px 24px;
+      background: white;
+      border-bottom: 1px solid lightgray;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-modal-body {
+      padding: 22px 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      background: whitesmoke;
+    }
+
+    /* Live Product Preview (Left Column) */
+    .live-preview-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid lightgray;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      height: fit-content;
+    }
+
+    .live-preview-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: red;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .live-preview-tag::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: mediumseagreen;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .preview-image-box {
+      width: 100%;
+      height: 230px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: whitesmoke;
+      border: 1px solid lightgray;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-image-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: gray;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .preview-image-placeholder svg,
+    .preview-image-placeholder i {
+      width: 48px;
+      height: 48px;
+      font-size: 2.5rem;
+      color: lightgray;
+      stroke: lightgray;
+      margin-bottom: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-badge-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: red;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .preview-details-body {
+      padding-top: 14px;
+    }
+
+    .preview-cat {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: gray;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-title {
+      font-family: serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: black;
+      margin: 4px 0 8px;
+      line-height: 1.35;
+      min-height: 24px;
+    }
+
+    .preview-stars {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+
+    .preview-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid whitesmoke;
+    }
+
+    .preview-sale-price {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: black;
+    }
+
+    .preview-mrp-price {
+      font-size: 0.88rem;
+      color: gray;
+      text-decoration: line-through;
+    }
+
+    .preview-discount-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: forestgreen;
+      background: honeydew;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .preview-meta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: slategray;
+      background: whitesmoke;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .preview-finish-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .preview-finish-pill {
+      font-size: 0.72rem;
+      background: white;
+      border: 1px solid lightgray;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: darkslategray;
+    }
+
+    /* Form Panels (Right Column) */
+    .form-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px 20px;
+      border: 1px solid lightgray;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .form-card-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: black;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid whitesmoke;
+      padding-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: darkslategray;
+      margin-bottom: 5px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: white;
+      color: black;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: red;
+      box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+    }
+
+    /* Image Upload Section */
+    .image-source-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .img-tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid lightgray;
+      background: whitesmoke;
+      color: slategray;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .img-tab-btn.active {
+      background: red;
+      color: white;
+      border-color: red;
+      box-shadow: 0 2px 6px rgba(211, 47, 47, 0.2);
+    }
+
+    .file-upload-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed gray;
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      background: whitesmoke;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .file-upload-card:hover {
+      border-color: red;
+      background: snow;
+    }
+
+    .upload-icon-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: mistyrose;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .upload-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: black;
+      margin-bottom: 4px;
+    }
+
+    .upload-sub {
+      font-size: 0.76rem;
+      color: gray;
+      margin-bottom: 12px;
+    }
+
+    .browse-btn {
+      background: white;
+      border: 1px solid lightgray;
+      padding: 7px 18px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: darkslategray;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      pointer-events: none;
+    }
+
+    .active-image-preview-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: honeydew;
+      border: 1px solid lightgreen;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 10px;
+    }
+
+    .active-image-preview-bar img {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid lightgray;
+    }
+
+    .active-image-info {
+      flex: 1;
+      font-size: 0.82rem;
+    }
+
+    .active-image-info strong {
+      display: block;
+      color: darkgreen;
+    }
+
+    .active-image-info span {
+      font-size: 0.74rem;
+      color: gray;
+    }
+
+    .remove-image-btn {
+      background: mistyrose;
+      border: 1px solid lightpink;
+      color: darkred;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .remove-image-btn:hover {
+      background: lightcoral;
+    }
+
+    /* Multi-Photo Gallery Styles */
+    .product-gallery-card {
+      transition: all 0.2s ease;
+    }
+
+    .product-gallery-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .preview-mini-thumb {
+      transition: all 0.15s ease;
+    }
+
+    .preview-mini-thumb:hover {
+      transform: scale(1.05);
+    }
+
+    .preview-mini-thumb.active {
+      border-color: red !important;
+      box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.3);
+    }
+
+    /* Stock Radio Options */
+    .stock-radio-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .stock-radio-card:hover {
+      transform: translateY(-1px);
+    }
+
+    .dashboard-modal-footer {
+      padding: 16px 24px;
+      background: white;
+      border-top: 1px solid lightgray;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Filter and Search */
+    .admin-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-input-box input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border-radius: 8px;
+      border: 1px solid lightgray;
+      font-size: 0.88rem;
+      background: white;
+      box-sizing: border-box;
+    }
+
+    .search-input-box svg,
+    .search-input-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      font-size: 1rem;
+      color: gray;
+      stroke: gray;
+    }
+
+    @media (max-width: 960px) {
+      .dashboard-modal-body {
+        grid-template-columns: 1fr;
+      }
+
+      .live-preview-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .dashboard-modal-overlay {
+        padding: 8px;
+      }
+
+      .dashboard-modal-container {
+        max-height: 96vh;
+        border-radius: 12px;
+      }
+
+      .dashboard-modal-header {
+        padding: 12px 14px;
+      }
+
+      .dashboard-modal-body {
+        padding: 14px 12px;
+        gap: 16px;
+      }
+
+      .dashboard-modal-footer {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+      }
+
+      .search-input-box {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body class="admin-body">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div
+        style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif; color: white;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block;">RADHEY RADHEY</strong>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html" class="active">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" style="color: red; font-weight: 700;">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑
+        Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div>
+        <h2 style="font-size: 1.3rem; font-weight: 800; margin: 0;">Catalog & Inventory Studio</h2>
+        <p style="font-size: 0.8rem; color: gray; margin: 2px 0 0;">Add, edit and manage Sheesham & Teak furniture
+          listings with real-time cloud sync</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div id="syncStatusBadge"
+          style="background: honeydew; color: darkgreen; border: 1px solid lightgreen; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+          <span
+            style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: limegreen;"></span>
+          ☁️ Cloud Database Synced
+        </div>
+        <button onclick="openCreateProductModal()" class="btn btn-red btn-sm"
+          style="display: flex; align-items: center; gap: 6px; padding: 10px 18px; font-weight: 700;">
+          <span>+</span> Add New Furniture
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-table-card">
+
+        <!-- Filter and Search Row -->
+        <div class="admin-filter-bar">
+          <div class="search-input-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="adminSearchInput" placeholder="Search products by title, ID, or wood material..."
+              oninput="handleSearchFilter()">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <select id="adminCategoryFilter" onchange="handleSearchFilter()"
+              style="padding: 10px 14px; border-radius: 8px; border: 1px solid lightgray; font-size: 0.88rem; background: white; font-weight: 600;">
+              <option value="all">All Wooden Categories</option>
+              <option value="living">Living Room</option>
+              <option value="bedroom">Bedroom</option>
+              <option value="dining">Dining Sets</option>
+              <option value="mandir">Pooja Mandir</option>
+              <option value="handicraft">Indian Handicrafts</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="admin-table-header" style="border-top: 1px solid whitesmoke; padding-top: 14px;">
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 700;">All Furniture Listings (<span
+                id="totalProductsCount">0</span>)</h3>
+            <p style="font-size: 0.78rem; color: gray;">Live synchronization with Google Firebase Cloud</p>
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Indicator Badge -->
+        <div class="mobile-table-scroll-hint">
+          <span>📱 <strong>Mobile View:</strong> Product ke sabhi features (Edit, Delete, Stock) dekhne ke liye table
+            scroll karein</span>
+          <span class="scroll-arrow-badge">Scroll Horizontally ➔</span>
+        </div>
+
+        <div class="admin-table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 80px;">Image</th>
+                <th style="min-width: 220px;">Product Details</th>
+                <th style="min-width: 130px;">Category</th>
+                <th style="min-width: 130px;">Price & Offer</th>
+                <th style="min-width: 120px;">Wood Type</th>
+                <th style="min-width: 130px;">Stock Status</th>
+                <th style="min-width: 190px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================
+       RICH PRODUCT DETAILS DASHBOARD MODAL (ADD & EDIT)
+       ======================================================= -->
+  <div id="productDashboardModal" class="dashboard-modal-overlay">
+    <div class="dashboard-modal-container">
+
+      <!-- Modal Header -->
+      <div class="dashboard-modal-header">
+        <div>
+          <h3 id="modalMainHeading"
+            style="font-size: 1.25rem; font-weight: 800; margin: 0; color: black; display: flex; align-items: center; gap: 8px;">
+            ✨ Add New Furniture / Craft
+          </h3>
+          <p id="modalSubHeading" style="font-size: 0.78rem; color: gray; margin: 2px 0 0;">
+            Live Product Details Studio — Changes update in real-time on the left preview
+          </p>
+        </div>
+        <button onclick="closeProductModal()"
+          style="font-size: 1.5rem; background: none; border: none; cursor: pointer; color: gray; line-height: 1; padding: 4px;">✕</button>
+      </div>
+
+      <!-- Modal Body (Two-Column Layout) -->
+      <div class="dashboard-modal-body">
+
+        <!-- LEFT: LIVE PRODUCT DETAILS PREVIEW CARD -->
+        <div class="live-preview-panel">
+          <div class="live-preview-tag">Live Product Details Preview</div>
+
+          <div class="preview-image-box" id="previewImageBox">
+            <img id="previewImg" src="" alt="Product Preview" style="display: none;">
+            <div id="previewImagePlaceholder" class="preview-image-placeholder">
+              <i class="bi bi-image"></i>
+              <span style="font-size: 0.8rem; font-weight: 600;">Upload photo to preview</span>
+            </div>
+            <span id="previewBadge" class="preview-badge-overlay" style="display: none;">Best Seller</span>
+          </div>
+
+          <!-- Multi-Photo Mini Thumbnail Row in Live Preview -->
+          <div id="previewMultiThumbnails"
+            style="display: none; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px;"></div>
+
+          <div class="preview-details-body">
+            <div id="previewCategory" class="preview-cat">Select Category</div>
+            <div id="previewTitle" class="preview-title">
+              <span style="color: gray; font-style: italic; font-weight: normal;">Product title will appear
+                here...</span>
+            </div>
+
+            <div class="preview-stars">
+              <span style="color: orange; font-weight: 800;">★ <span id="previewRating">5.0</span></span>
+              <span style="color: gray;">(<span id="previewReviews">1</span> Verified Reviews)</span>
+            </div>
+
+            <div class="preview-price-row">
+              <span id="previewSalePrice" class="preview-sale-price">₹0</span>
+              <span id="previewMRP" class="preview-mrp-price" style="display: none;"></span>
+              <span id="previewDiscount" class="preview-discount-pill" style="display: none;"></span>
+            </div>
+
+            <div class="preview-meta-row">
+              <div><strong>🪵 Wood:</strong> <span id="previewWood" style="color: gray;">Not specified</span></div>
+              <div><strong>📐 Dimensions:</strong> <span id="previewDimensions" style="color: gray;">-</span></div>
+              <div><strong>🛡️ Warranty:</strong> <span id="previewWarranty" style="color: gray;">10 Years Wood
+                  Warranty</span></div>
+              <div>
+                <strong>📦 Availability:</strong>
+                <span id="previewStockStatus"
+                  style="font-weight: 800; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; display: inline-block;">●
+                  In Stock</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: slategray; margin-bottom: 4px;">Available
+                Finishes:</div>
+              <div id="previewFinishesContainer" class="preview-finish-pills">
+                <span style="font-size: 0.75rem; color: gray;">No finishes added</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed lightgray;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: gray;">Description:</div>
+              <p id="previewDesc"
+                style="font-size: 0.78rem; color: slategray; margin: 4px 0 0; line-height: 1.4; max-height: 52px; overflow: hidden;">
+                <span style="color: gray; font-style: italic;">No description entered yet.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: EDIT / ADD CONTROLS FORM -->
+        <form id="productDashboardForm" onsubmit="handleProductSubmit(event)" class="form-panel">
+          <input type="hidden" id="editingProductId" value="">
+
+          <!-- Card 1: Core Identification -->
+          <div class="form-card">
+            <div class="form-card-title">📌 1. Basic Product Information</div>
+
+            <div class="form-group">
+              <label class="form-label">Product Title / Name *</label>
+              <input type="text" id="formTitle" class="form-input"
+                placeholder="e.g. Royal Solid Teak Wood Diwan Bed with Carving" required oninput="updateLivePreview()">
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label class="form-label">Category *</label>
+                <select id="formCategory" class="form-select" onchange="updateLivePreview()">
+                  <option value="living">Living Room Furniture</option>
+                  <option value="bedroom">Bedroom Furniture</option>
+                  <option value="dining">Dining Sets</option>
+                  <option value="mandir">Pooja Mandir</option>
+                  <option value="handicraft">Indian Handicrafts</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Wood Material *</label>
+                <input type="text" id="formWood" class="form-input" placeholder="e.g. 100% Solid Sheesham Wood" required
+                  oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label class="form-label">Product Badge / Ribbon</label>
+                <select id="formBadge" class="form-select" onchange="updateLivePreview()">
+                  <option value="">None (Standard Listing)</option>
+                  <option value="Best Seller">Best Seller (🔥 Popular)</option>
+                  <option value="Royal Luxury">Royal Luxury (👑 Premium)</option>
+                  <option value="Top Rated">Top Rated (⭐ 5-Star)</option>
+                  <option value="New Launch">New Launch (✨ Latest)</option>
+                  <option value="Handcrafted">Handcrafted Masterpiece</option>
+                  <option value="Heritage Craft">Heritage Craft</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Wood Warranty</label>
+                <input type="text" id="formWarranty" class="form-input" placeholder="e.g. 10 Years Wood Warranty"
+                  oninput="updateLivePreview()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Pricing, Discount & In-Stock / Out-of-Stock Options -->
+          <div class="form-card">
+            <div class="form-card-title">💰 2. Pricing & Stock Availability</div>
+
+            <div class="form-row">
+              <div>
+                <label class="form-label">Selling Price (₹) *</label>
+                <input type="number" id="formPrice" class="form-input" placeholder="e.g. 24999" required
+                  oninput="updateLivePreview()">
+              </div>
+
+              <div>
+                <label class="form-label">MRP Original Price (₹)</label>
+                <input type="number" id="formMRP" class="form-input" placeholder="e.g. 35000 (Optional for discount %)"
+                  oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <!-- TWO EXPLICIT OPTIONS: IN STOCK vs OUT OF STOCK -->
+            <div class="form-group" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid whitesmoke;">
+              <label class="form-label" style="font-size: 0.84rem; margin-bottom: 8px;">Inventory Availability Status
+                *</label>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <!-- Option 1: In Stock -->
+                <label id="stockOptionInLabel" class="stock-radio-card"
+                  style="border: 2px solid green; background: honeydew;">
+                  <input type="radio" name="stockRadioGroup" id="stockRadioIn" value="in_stock" checked
+                    onchange="handleStockChange('in_stock')" style="width: 18px; height: 18px; accent-color: green;">
+                  <div>
+                    <strong style="color: forestgreen; font-size: 0.88rem; display: block;">✅ In Stock</strong>
+                    <span style="font-size: 0.72rem; color: darkgreen;">Available & Ready to Dispatch</span>
+                  </div>
+                </label>
+
+                <!-- Option 2: Out of Stock -->
+                <label id="stockOptionOutLabel" class="stock-radio-card"
+                  style="border: 2px solid lightgray; background: white;">
+                  <input type="radio" name="stockRadioGroup" id="stockRadioOut" value="out_of_stock"
+                    onchange="handleStockChange('out_of_stock')" style="width: 18px; height: 18px; accent-color: red;">
+                  <div>
+                    <strong style="color: red; font-size: 0.88rem; display: block;">❌ Out of Stock</strong>
+                    <span style="font-size: 0.72rem; color: darkred;">Currently Sold Out / Unavailable</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 8px;">
+              <label
+                style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                <input type="checkbox" id="formFeatured" checked onchange="updateLivePreview()"
+                  style="width: 18px; height: 18px; accent-color: red;">
+                <span>⭐ Feature on Homepage Storefront</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Card 3: Image Upload & Link Options -->
+          <div class="form-card">
+            <div class="form-card-title">🖼️ 3. Product Photos (Multi-Photo Upload / Multiple Angles)</div>
+            <p style="font-size: 0.78rem; color: gray; margin: -6px 0 12px 0;">Aap ek ya multiple photos upload kar
+              sakte hain. Pehli photo Cover Photo banegi.</p>
+
+            <div class="image-source-tabs">
+              <button type="button" class="img-tab-btn active" id="tabUploadBtn" onclick="switchImageSource('upload')">
+                <span>📁</span> Upload Photos (Computer / Phone)
+              </button>
+              <button type="button" class="img-tab-btn" id="tabUrlBtn" onclick="switchImageSource('url')">
+                <span>🔗</span> Add Photo via Web URL
+              </button>
+            </div>
+
+            <!-- Upload Option -->
+            <div id="imageUploadBox">
+              <div class="file-upload-card" onclick="document.getElementById('imageFileInput').click()">
+                <input type="file" id="imageFileInput" accept="image/*" multiple onchange="handleImageFileUpload(event)"
+                  style="display: none;">
+                <div class="upload-icon-circle">
+                  <i class="bi bi-images" style="font-size: 1.85rem; color: red;"></i>
+                </div>
+                <div class="upload-title">Click to Select / Upload Multiple Photos</div>
+                <div class="upload-sub">Select 1 or multiple photos (JPG, PNG, WEBP) together or add more anytime</div>
+                <button type="button" class="browse-btn">📁 Choose Multiple Photos</button>
+              </div>
+
+              <!-- Processing Indicator -->
+              <div id="imageUploadSpinner"
+                style="display: none; padding: 10px 14px; text-align: center; background: lightyellow; border: 1px solid gold; border-radius: 8px; margin-top: 10px; font-size: 0.82rem; font-weight: 700; color: brown;">
+                ⏳ Compressing & optimizing photos...
+              </div>
+
+              <!-- Multi-Image Gallery Manager Section -->
+              <div id="productImagesGallerySection" style="display: none; margin-top: 14px;">
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid lightgray; flex-wrap: wrap; gap: 8px;">
+                  <div
+                    style="font-size: 0.84rem; font-weight: 800; color: black; display: flex; align-items: center; gap: 6px;">
+                    <span>📷 Attached Photos:</span>
+                    <span id="photoCountBadge"
+                      style="background: lightgray; color: black; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 800;">0</span>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" onclick="document.getElementById('imageFileInput').click()"
+                      class="action-btn-sm"
+                      style="background: honeydew; border-color: lightgreen; color: forestgreen; font-weight: 700; font-size: 0.75rem;">
+                      ➕ Add More Photos
+                    </button>
+                    <button type="button" onclick="clearAllPhotos()" class="action-btn-sm delete"
+                      style="font-size: 0.75rem;">
+                      ✕ Remove All
+                    </button>
+                  </div>
+                </div>
+
+                <div id="productImagesGrid"
+                  style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;">
+                  <!-- Dynamically rendered photo cards -->
+                </div>
+
+                <div style="margin-top: 8px; font-size: 0.72rem; color: gray;">
+                  💡 <em>Pehli photo main cover photo hoti hai. Kisi bhi photo ko main banane ke liye "⭐ Cover" par
+                    click karein.</em>
+                </div>
+              </div>
+            </div>
+
+            <!-- URL Option -->
+            <div id="imageUrlBox" style="display: none;">
+              <label class="form-label">Direct Image Link (Unsplash or Web URL)</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="url" id="formImageUrl" class="form-input"
+                  placeholder="https://images.unsplash.com/photo-..." style="flex: 1;">
+                <button type="button" onclick="addImageUrl()" class="btn btn-red"
+                  style="padding: 8px 16px; font-size: 0.82rem; white-space: nowrap;">
+                  ➕ Add Photo
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid whitesmoke;">
+              <div style="font-size: 0.75rem; color: gray; font-weight: 700; margin-bottom: 6px;">
+                💡 Quick Photo Presets (Click any to attach sample photo):
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                <button type="button" onclick="setPresetImage('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80')" class="action-btn-sm" style="font-size: 0.74rem;">🛋️ Sofa</button>
+                <button type="button" onclick="setPresetImage('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80')" class="action-btn-sm" style="font-size: 0.74rem;">🛏️ Bed</button>
+                <button type="button" onclick="setPresetImage('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80')" class="action-btn-sm" style="font-size: 0.74rem;">🛕 Mandir</button>
+                <button type="button" onclick="setPresetImage('https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80')" class="action-btn-sm" style="font-size: 0.74rem;">🪑 Dining</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/window-slider-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🪟 Window</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/door-patio-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🚪 Door</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/gate-compound-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">⛩️ Gate</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/mirror-vanity-led-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🪞 Mirror</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/railing-staircase-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🪜 Railing</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/shower-corner-cubicle-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🚿 Shower</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/aluminium-curtainwall-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🏢 Facade</button>
+                <button type="button" onclick="setPresetImage('assets/images/products/steel-shed-structure-1.jpg')" class="action-btn-sm" style="font-size: 0.74rem; background: aliceblue; color: navy;">🏗️ Steel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Detailed Specifications & Description -->
+          <div class="form-card">
+            <div class="form-card-title">📐 4. Specifications & Artisan Story</div>
+
+            <div class="form-row">
+              <div>
+                <label class="form-label">Dimensions (L x W x H)</label>
+                <input type="text" id="formDimensions" class="form-input" placeholder="e.g. 78\" W x 34\"D x 38\"H"
+                  oninput="updateLivePreview()">
+              </div>
+
+              <div>
+                <label class="form-label">Available Finishes (Comma separated)</label>
+                <input type="text" id="formFinishes" class="form-input"
+                  placeholder="e.g. Teak Polish, Honey Gloss, Dark Walnut" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div>
+                <label class="form-label">Customer Rating (1 to 5)</label>
+                <input type="number" id="formRating" class="form-input" value="5.0" step="0.1" min="1" max="5"
+                  oninput="updateLivePreview()">
+              </div>
+
+              <div>
+                <label class="form-label">Review Count</label>
+                <input type="number" id="formReviews" class="form-input" value="1" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Artisan Crafting Narrative / Description</label>
+              <textarea id="formDesc" class="form-textarea" rows="3"
+                placeholder="Describe the seasoned wood, carving techniques, upholstery, and craftsmanship..."
+                oninput="updateLivePreview()"></textarea>
+            </div>
+          </div>
+
+          <!-- Footer Actions inside container -->
+          <div class="dashboard-modal-footer" style="padding: 10px 0 0; background: transparent; border: none;">
+            <button type="button" onclick="closeProductModal()" class="action-btn-sm"
+              style="padding: 10px 20px; font-size: 0.9rem;">
+              Cancel
+            </button>
+            <button type="submit" id="submitProductBtn" class="btn btn-red"
+              style="padding: 10px 26px; font-weight: 800; font-size: 0.95rem;">
+              💾 Save & Publish Product
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // Strict URL Route Guard: Redirect immediately if unauthorized
+    const currentAdmin = enforceAdminAuth();
+
+    // State
+    let allAdminProducts = [];
+    let currentProductImages = []; // Array of image URLs / dataURLs
+    let currentActiveImage = '';    // Active/Primary image
+    let isProductInStock = true; // State for In Stock vs Out of Stock
+
+    const categoryNamesMap = {
+      living: 'Living Room Furniture',
+      bedroom: 'Bedroom Furniture',
+      dining: 'Dining Sets',
+      mandir: 'Pooja Mandir',
+      handicraft: 'Indian Handicrafts',
+      windows: 'Aluminium Windows',
+      doors: 'Designer Doors',
+      gates: 'Main Gates',
+      mirrors: 'LED & Mirrors',
+      partitions: 'Glass Partitions',
+      railings: 'SS & Glass Railings',
+      shower: 'Shower Cubicles',
+      aluminium: 'Aluminium Fabrication',
+      'steel-work': 'Structural Steel Work'
+    };
+
+    function resolveAdminImg(src) {
+      if (!src) return '../assets/images/image.png';
+      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:') || src.startsWith('blob:')) return src;
+      return '../' + src.replace(/^(\.\.\/)+/, '').replace(/^(\.\/)+/, '').replace(/^\//, '');
+    }
+
+    const WOODEN_CATEGORIES = ['living', 'bedroom', 'dining', 'mandir', 'handicraft'];
+
+    // ----------------------------------------------------
+    // 1. RENDER PRODUCTS TABLE (WOODEN FURNITURE ONLY)
+    // ----------------------------------------------------
+    async function renderAdminProductsTable() {
+      const allFromDB = await fetchAdminProductsFromDB();
+      allAdminProducts = allFromDB.filter(p => WOODEN_CATEGORIES.includes(p.category));
+      document.getElementById('totalProductsCount').textContent = allAdminProducts.length;
+      handleSearchFilter();
+    }
+
+    function handleSearchFilter() {
+      const q = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+      const cat = document.getElementById('adminCategoryFilter').value;
+
+      let filtered = allAdminProducts;
+
+      if (cat !== 'all') {
+        filtered = filtered.filter(p => p.category === cat);
+      }
+
+      if (q) {
+        filtered = filtered.filter(p =>
+          (p.title && p.title.toLowerCase().includes(q)) ||
+          (p.id && p.id.toLowerCase().includes(q)) ||
+          (p.woodType && p.woodType.toLowerCase().includes(q))
+        );
+      }
+
+      const tbody = document.getElementById('productsTableBody');
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: gray;">No products match your filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        const prodId = p.id || p._id;
+        const discountText = p.discount || (p.originalPrice && p.price ? Math.round((1 - p.price / p.originalPrice) * 100) + '% OFF' : 'Special Price');
+        const badgeTag = p.badge ? `<span style="font-size: 0.68rem; background: mistyrose; color: darkred; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">${p.badge}</span>` : '';
+        const inStock = p.inStock !== false;
+        const imgCount = Array.isArray(p.images) ? p.images.length : (p.image ? 1 : 0);
+
+        return `
+        <tr>
+          <td>
+            <div style="position: relative; width: 65px; height: 65px; display: inline-block;">
+              <img src="${resolveAdminImg(p.image)}" alt="${p.title}" style="width: 65px; height: 65px; border-radius: 8px; object-fit: cover; border: 1px solid lightgray;" onerror="this.onerror=null;this.src='../assets/images/image.png';">
+              ${imgCount > 1 ? `<span style="position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.8); color: white; font-size: 0.65rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);" title="${imgCount} Photos Available">📷 ${imgCount}</span>` : ''}
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; align-items: center;">
+              <strong style="color: black; font-size: 0.95rem;">${p.title}</strong>
+              ${badgeTag}
+            </div>
+            <div style="font-size: 0.75rem; color: gray; margin-top: 2px;">ID: <span style="font-family: monospace; font-weight: bold;">#${prodId}</span></div>
+          </td>
+          <td><span style="font-size: 0.82rem; font-weight: 700; color: slategray;">${p.categoryName || categoryNamesMap[p.category] || p.category}</span></td>
+          <td>
+            <strong style="font-size: 0.95rem; color: black;">${formatINR(p.price)}</strong>
+            <div style="font-size: 0.72rem; color: green; font-weight: 700;">${discountText}</div>
+          </td>
+          <td><span style="font-size: 0.82rem; color: darkslategray; font-weight: 600;">${p.woodType || 'Solid Wood'}</span></td>
+          <td>
+            ${inStock
+            ? `<span class="badge-status" style="background: honeydew; color: forestgreen; font-weight: 800; font-size: 0.74rem;">● In Stock</span>`
+            : `<span class="badge-status" style="background: mistyrose; color: red; font-weight: 800; font-size: 0.74rem;">✕ Out of Stock</span>`}
+          </td>
+          <td style="white-space: nowrap;">
+            <div style="display: flex; gap: 8px; align-items: center; min-width: 190px;">
+              <button onclick="openEditProductModal('${prodId}')" class="action-btn-sm" style="color: dodgerblue; font-weight: 700; border-color: lightblue; background: aliceblue; padding: 7px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Edit Product Details">
+                ✏️ Edit
+              </button>
+              <a href="${['windows', 'doors', 'gates', 'mirrors', 'partitions', 'railings', 'shower', 'aluminium', 'steel-work'].includes(p.category) ? `../Aluminium products/${p.category}.html?id=${prodId}` : `../product-details.html?id=${prodId}`}" 
+                 target="_blank" 
+                 class="action-btn-sm" style="color: slategray; padding: 7px 12px; display: inline-flex; align-items: center; gap: 4px;" title="View Live Customer Page">
+                👁️ View
+              </a>
+              <button onclick="handleDelete('${prodId}')" class="action-btn-sm delete" style="padding: 7px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Delete Product">
+                🗑️ Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    // ----------------------------------------------------
+    // 2. STOCK AVAILABILITY HANDLER (IN STOCK vs OUT OF STOCK)
+    // ----------------------------------------------------
+    function handleStockChange(status) {
+      if (status === 'in_stock') {
+        isProductInStock = true;
+        document.getElementById('stockRadioIn').checked = true;
+        document.getElementById('stockOptionInLabel').style.borderColor = 'green';
+        document.getElementById('stockOptionInLabel').style.background = 'honeydew';
+        document.getElementById('stockOptionOutLabel').style.borderColor = 'lightgray';
+        document.getElementById('stockOptionOutLabel').style.background = 'white';
+      } else {
+        isProductInStock = false;
+        document.getElementById('stockRadioOut').checked = true;
+        document.getElementById('stockOptionOutLabel').style.borderColor = 'red';
+        document.getElementById('stockOptionOutLabel').style.background = 'snow';
+        document.getElementById('stockOptionInLabel').style.borderColor = 'lightgray';
+        document.getElementById('stockOptionInLabel').style.background = 'white';
+      }
+      updateLivePreview();
+    }
+
+    // ----------------------------------------------------
+    // 3. MODAL CONTROLS (CREATE & EDIT)
+    // ----------------------------------------------------
+    function openCreateProductModal() {
+      document.getElementById('modalMainHeading').innerHTML = '✨ Add New Furniture / Craft';
+      document.getElementById('modalSubHeading').textContent = 'Create a new handcrafted wooden product with live customer details preview';
+      document.getElementById('submitProductBtn').innerHTML = '💾 Save & Publish Product';
+      document.getElementById('editingProductId').value = '';
+
+      // Clean, empty fields for Add New
+      document.getElementById('formTitle').value = '';
+      document.getElementById('formCategory').value = 'living';
+      document.getElementById('formWood').value = '';
+      document.getElementById('formBadge').value = '';
+      document.getElementById('formWarranty').value = '10 Years Wood Warranty';
+      document.getElementById('formPrice').value = '';
+      document.getElementById('formMRP').value = '';
+      document.getElementById('formFeatured').checked = true;
+      document.getElementById('formDimensions').value = '';
+      document.getElementById('formFinishes').value = '';
+      document.getElementById('formRating').value = '5.0';
+      document.getElementById('formReviews').value = '1';
+      document.getElementById('formDesc').value = '';
+
+      handleStockChange('in_stock'); // Default to In Stock
+
+      // Multi-image reset
+      currentProductImages = [];
+      currentActiveImage = '';
+      document.getElementById('formImageUrl').value = '';
+      document.getElementById('imageFileInput').value = '';
+      renderProductImagesGallery();
+      switchImageSource('upload');
+
+      updateLivePreview();
+      document.getElementById('productDashboardModal').style.display = 'flex';
+    }
+
+    function openEditProductModal(productId) {
+      let prod = allAdminProducts.find(p => (p.id === productId || p._id === productId));
+      if (!prod && typeof getProductById === 'function') {
+        prod = getProductById(productId);
+      }
+      if (!prod && typeof PRODUCTS_DATA !== 'undefined') {
+        prod = PRODUCTS_DATA.find(p => p.id === productId || p._id === productId);
+      }
+      if (!prod) {
+        alert('Product details not found! ID: ' + productId);
+        return;
+      }
+
+      document.getElementById('modalMainHeading').innerHTML = `✏️ Edit Product Details <span style="font-size: 0.8rem; background: aliceblue; color: dodgerblue; padding: 2px 8px; border-radius: 4px; margin-left: 8px;">ID: #${productId}</span>`;
+      document.getElementById('modalSubHeading').textContent = 'Modify specifications, prices, wood finishes or multiple images with live preview';
+      document.getElementById('submitProductBtn').innerHTML = '💾 Update Product Details';
+      document.getElementById('editingProductId').value = productId;
+
+      // Populate form values with actual product details
+      document.getElementById('formTitle').value = prod.title || '';
+      document.getElementById('formCategory').value = prod.category || 'living';
+      document.getElementById('formWood').value = prod.woodType || '';
+      document.getElementById('formBadge').value = prod.badge || '';
+      document.getElementById('formWarranty').value = prod.warranty || '10 Years Wood Warranty';
+      document.getElementById('formPrice').value = prod.price || '';
+      document.getElementById('formMRP').value = prod.originalPrice || '';
+      document.getElementById('formFeatured').checked = prod.isFeatured !== false;
+      document.getElementById('formDimensions').value = prod.dimensions || '';
+
+      const finishesStr = Array.isArray(prod.finish) ? prod.finish.join(', ') : (prod.finish || '');
+      document.getElementById('formFinishes').value = finishesStr;
+
+      document.getElementById('formRating').value = prod.rating || 5.0;
+      document.getElementById('formReviews').value = prod.reviewCount || 1;
+      document.getElementById('formDesc').value = prod.description || '';
+
+      // Set Stock Status (In Stock vs Out of Stock)
+      handleStockChange(prod.inStock !== false ? 'in_stock' : 'out_of_stock');
+
+      // Populate existing images (supports both array 'images' and legacy string 'image')
+      if (Array.isArray(prod.images) && prod.images.length > 0) {
+        currentProductImages = [...prod.images];
+      } else if (prod.image) {
+        currentProductImages = [prod.image];
+      } else {
+        currentProductImages = [];
+      }
+      currentActiveImage = currentProductImages[0] || '';
+      document.getElementById('formImageUrl').value = '';
+      document.getElementById('imageFileInput').value = '';
+      renderProductImagesGallery();
+
+      switchImageSource('upload');
+      updateLivePreview();
+      document.getElementById('productDashboardModal').style.display = 'flex';
+    }
+
+    function closeProductModal() {
+      document.getElementById('productDashboardModal').style.display = 'none';
+    }
+
+    // ----------------------------------------------------
+    // 4. MULTI-IMAGE UPLOAD, COMPRESSION & GALLERY HANDLING
+    // ----------------------------------------------------
+    function switchImageSource(mode) {
+      if (mode === 'upload') {
+        document.getElementById('imageUploadBox').style.display = 'block';
+        document.getElementById('imageUrlBox').style.display = 'none';
+        document.getElementById('tabUploadBtn').classList.add('active');
+        document.getElementById('tabUrlBtn').classList.remove('active');
+      } else {
+        document.getElementById('imageUploadBox').style.display = 'none';
+        document.getElementById('imageUrlBox').style.display = 'block';
+        document.getElementById('tabUploadBtn').classList.remove('active');
+        document.getElementById('tabUrlBtn').classList.add('active');
+      }
+    }
+
+    // Compress an individual file using HTML5 Canvas
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function (event) {
+          const rawImg = new Image();
+          rawImg.onerror = reject;
+          rawImg.onload = function () {
+            // Resize large images (max 800px) and compress to JPEG 0.72 (~30-50KB each)
+            const maxDim = 800;
+            let w = rawImg.width;
+            let h = rawImg.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(rawImg, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.72);
+            resolve(compressed);
+          };
+          rawImg.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Handle multiple photos upload from input
+    async function handleImageFileUpload(e) {
+      const files = Array.from(e.target.files || []);
+      if (!files || files.length === 0) return;
+
+      const spinner = document.getElementById('imageUploadSpinner');
+      if (spinner) {
+        spinner.style.display = 'block';
+        spinner.textContent = `⏳ Optimizing & loading ${files.length} photo(s)...`;
+      }
+
+      try {
+        for (const file of files) {
+          const compressedDataUrl = await compressImageFile(file);
+          if (compressedDataUrl) {
+            currentProductImages.push(compressedDataUrl);
+          }
+        }
+      } catch (err) {
+        console.error('Photo processing error:', err);
+        alert('Photo processing error: ' + err.message);
+      } finally {
+        if (spinner) spinner.style.display = 'none';
+        e.target.value = ''; // Reset input to allow selecting same files again if needed
+        renderProductImagesGallery();
+        updateLivePreview();
+      }
+    }
+
+    // Render multi-photo gallery in the form
+    function renderProductImagesGallery() {
+      const section = document.getElementById('productImagesGallerySection');
+      const countBadge = document.getElementById('photoCountBadge');
+      const grid = document.getElementById('productImagesGrid');
+
+      if (!section || !grid) return;
+
+      if (currentProductImages.length === 0) {
+        section.style.display = 'none';
+        currentActiveImage = '';
+        return;
+      }
+
+      section.style.display = 'block';
+      if (countBadge) countBadge.textContent = currentProductImages.length;
+      currentActiveImage = currentProductImages[0] || '';
+
+      grid.innerHTML = currentProductImages.map((imgSrc, idx) => {
+        const isPrimary = idx === 0;
+        return `
+          <div class="product-gallery-card" style="position: relative; border: 2px solid ${isPrimary ? 'mediumseagreen' : 'lightgray'}; border-radius: 10px; padding: 6px; background: ${isPrimary ? 'honeydew' : 'white'}; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 6px;">
+            <div style="width: 100%; height: 95px; border-radius: 6px; overflow: hidden; position: relative; background: whitesmoke;">
+              <img src="${resolveAdminImg(imgSrc)}" alt="Photo ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;">
+              ${isPrimary
+            ? `<span style="position: absolute; top: 4px; left: 4px; background: seagreen; color: white; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">👑 Cover</span>`
+            : `<span style="position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.65); color: white; font-size: 0.65rem; font-weight: 700; padding: 1px 5px; border-radius: 4px;">Photo ${idx + 1}</span>`}
+            </div>
+            <div style="display: flex; gap: 4px; width: 100%; align-items: center;">
+              ${!isPrimary ? `
+                <button type="button" onclick="makePhotoPrimary(${idx})" class="action-btn-sm" style="flex: 1; font-size: 0.7rem; padding: 3px 4px; background: aliceblue; color: blue; border-color: lightblue; font-weight: 700;" title="Make this the main cover photo">
+                  ⭐ Cover
+                </button>
+              ` : `
+                <span style="flex: 1; text-align: center; font-size: 0.72rem; color: darkgreen; font-weight: 800; padding: 3px 0;">
+                  ✓ Main
+                </span>
+              `}
+              <button type="button" onclick="removePhotoAtIndex(${idx})" class="action-btn-sm delete" style="padding: 3px 7px; font-size: 0.72rem;" title="Remove photo">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Move a selected photo to index 0 (make it primary/cover)
+    function makePhotoPrimary(index) {
+      if (index <= 0 || index >= currentProductImages.length) return;
+      const item = currentProductImages.splice(index, 1)[0];
+      currentProductImages.unshift(item);
+      renderProductImagesGallery();
+      updateLivePreview();
+    }
+
+    // Remove photo at given index
+    function removePhotoAtIndex(index) {
+      currentProductImages.splice(index, 1);
+      renderProductImagesGallery();
+      updateLivePreview();
+    }
+
+    // Remove all attached photos
+    function clearAllPhotos() {
+      if (currentProductImages.length === 0) return;
+      if (confirm('Kya aap is product ki saari photos remove karna chahte hain?')) {
+        currentProductImages = [];
+        renderProductImagesGallery();
+        updateLivePreview();
+      }
+    }
+
+    // Add photo via Web URL
+    function addImageUrl() {
+      const urlInput = document.getElementById('formImageUrl');
+      const url = urlInput.value.trim();
+      if (!url) {
+        alert('Kripya image ka valid web URL daalein!');
+        return;
+      }
+      currentProductImages.push(url);
+      urlInput.value = '';
+      renderProductImagesGallery();
+      updateLivePreview();
+    }
+
+    // Add Preset Photo
+    function setPresetImage(url) {
+      if (!currentProductImages.includes(url)) {
+        currentProductImages.push(url);
+      }
+      renderProductImagesGallery();
+      updateLivePreview();
+    }
+
+    // ----------------------------------------------------
+    // 5. REAL-TIME LIVE PREVIEW UPDATER
+    // ----------------------------------------------------
+    function previewSpecificPhoto(src, el) {
+      const imgEl = document.getElementById('previewImg');
+      if (imgEl) imgEl.src = resolveAdminImg(src);
+      document.querySelectorAll('.preview-mini-thumb').forEach(t => {
+        t.style.borderColor = 'lightgray';
+        t.classList.remove('active');
+      });
+      if (el) {
+        el.style.borderColor = 'red';
+        el.classList.add('active');
+      }
+    }
+
+    function updateLivePreview() {
+      const title = document.getElementById('formTitle').value.trim();
+      const catKey = document.getElementById('formCategory').value;
+      const catName = categoryNamesMap[catKey] || 'Handcrafted Furniture';
+      const wood = document.getElementById('formWood').value.trim();
+      const badge = document.getElementById('formBadge').value;
+      const price = Number(document.getElementById('formPrice').value) || 0;
+      const mrp = Number(document.getElementById('formMRP').value) || 0;
+      const dimensions = document.getElementById('formDimensions').value.trim();
+      const warranty = document.getElementById('formWarranty').value.trim();
+      const rating = document.getElementById('formRating').value || '5.0';
+      const reviews = document.getElementById('formReviews').value || '1';
+      const desc = document.getElementById('formDesc').value.trim();
+
+      currentActiveImage = currentProductImages[0] || '';
+
+      // 1. Image Preview
+      const imgEl = document.getElementById('previewImg');
+      const placeholderEl = document.getElementById('previewImagePlaceholder');
+      const multiThumbsEl = document.getElementById('previewMultiThumbnails');
+
+      if (currentActiveImage) {
+        imgEl.src = resolveAdminImg(currentActiveImage);
+        imgEl.style.display = 'block';
+        placeholderEl.style.display = 'none';
+      } else {
+        imgEl.style.display = 'none';
+        placeholderEl.style.display = 'flex';
+      }
+
+      // Multi-photo mini thumbnails strip under live preview
+      if (multiThumbsEl) {
+        if (currentProductImages.length > 1) {
+          multiThumbsEl.innerHTML = currentProductImages.map((src, i) => `
+            <div onclick="previewSpecificPhoto('${src}', this)" class="preview-mini-thumb ${i === 0 ? 'active' : ''}" style="width: 44px; height: 44px; min-width: 44px; border-radius: 6px; overflow: hidden; border: 2px solid ${i === 0 ? 'red' : 'lightgray'}; cursor: pointer;">
+              <img src="${resolveAdminImg(src)}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+          `).join('');
+          multiThumbsEl.style.display = 'flex';
+        } else {
+          multiThumbsEl.style.display = 'none';
+        }
+      }
+
+      // 2. Title
+      const titleEl = document.getElementById('previewTitle');
+      if (title) {
+        titleEl.textContent = title;
+      } else {
+        titleEl.innerHTML = '<span style="color: gray; font-style: italic; font-weight: normal;">Product title will appear here...</span>';
+      }
+
+      // 3. Category & Badge
+      document.getElementById('previewCategory').textContent = catName;
+      const badgeEl = document.getElementById('previewBadge');
+      if (badge) {
+        badgeEl.textContent = badge;
+        badgeEl.style.display = 'block';
+      } else {
+        badgeEl.style.display = 'none';
+      }
+
+      // 4. Wood, Dimensions, Warranty
+      document.getElementById('previewWood').textContent = wood || 'Not specified';
+      document.getElementById('previewDimensions').textContent = dimensions || '-';
+      document.getElementById('previewWarranty').textContent = warranty || '10 Years Wood Warranty';
+      document.getElementById('previewRating').textContent = rating;
+      document.getElementById('previewReviews').textContent = reviews;
+
+      const descEl = document.getElementById('previewDesc');
+      if (desc) {
+        descEl.textContent = desc;
+      } else {
+        descEl.innerHTML = '<span style="color: gray; font-style: italic;">No description entered yet.</span>';
+      }
+
+      // 5. Price and Discount calculation
+      document.getElementById('previewSalePrice').textContent = price > 0 ? formatINR(price) : '₹0';
+
+      const mrpEl = document.getElementById('previewMRP');
+      const discountEl = document.getElementById('previewDiscount');
+
+      if (mrp > price && price > 0) {
+        mrpEl.textContent = formatINR(mrp);
+        mrpEl.style.display = 'inline';
+        const discountPct = Math.round(((mrp - price) / mrp) * 100);
+        discountEl.textContent = `${discountPct}% OFF`;
+        discountEl.style.display = 'inline-block';
+      } else {
+        mrpEl.style.display = 'none';
+        discountEl.style.display = 'none';
+      }
+
+      // 6. Stock Availability (In Stock vs Out of Stock)
+      const stockEl = document.getElementById('previewStockStatus');
+      if (isProductInStock) {
+        stockEl.textContent = '● In Stock (Ready to Ship)';
+        stockEl.style.color = 'forestgreen';
+        stockEl.style.background = 'honeydew';
+      } else {
+        stockEl.textContent = '✕ Out of Stock (Sold Out)';
+        stockEl.style.color = 'red';
+        stockEl.style.background = 'mistyrose';
+      }
+
+      // 7. Finishes pills
+      const finishesStr = document.getElementById('formFinishes').value;
+      const finishesArr = finishesStr.split(',').map(f => f.trim()).filter(Boolean);
+      const finishesContainer = document.getElementById('previewFinishesContainer');
+      if (finishesArr.length > 0) {
+        finishesContainer.innerHTML = finishesArr.map(f => `<span class="preview-finish-pill">${f}</span>`).join('');
+      } else {
+        finishesContainer.innerHTML = '<span style="font-size: 0.75rem; color: gray;">No finishes added</span>';
+      }
+    }
+
+    // ----------------------------------------------------
+    // 6. FORM SUBMISSION (CREATE OR UPDATE) WITH MULTI-IMAGE SUPPORT
+    // ----------------------------------------------------
+    async function handleProductSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitProductBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ Saving to Firebase Cloud...';
+
+      const editingId = document.getElementById('editingProductId').value;
+      const cat = document.getElementById('formCategory').value;
+      const price = Number(document.getElementById('formPrice').value);
+      const mrp = Number(document.getElementById('formMRP').value);
+      const discount = (mrp > price && price > 0) ? Math.round(((mrp - price) / mrp) * 100) + '% OFF' : 'Direct Factory Offer';
+
+      const finishesStr = document.getElementById('formFinishes').value;
+      const finishArray = finishesStr.split(',').map(f => f.trim()).filter(Boolean);
+
+      const categoryDefaultImages = {
+        windows: 'assets/images/products/window-slider-1.jpg',
+        doors: 'assets/images/products/door-patio-1.jpg',
+        gates: 'assets/images/products/gate-compound-1.jpg',
+        mirrors: 'assets/images/products/mirror-vanity-led-1.jpg',
+        partitions: 'assets/images/products/partition-acoustic-1.jpg',
+        railings: 'assets/images/products/railing-staircase-1.jpg',
+        shower: 'assets/images/products/shower-corner-cubicle-1.jpg',
+        aluminium: 'assets/images/products/aluminium-curtainwall-1.jpg',
+        'steel-work': 'assets/images/products/steel-shed-structure-1.jpg',
+        living: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80',
+        bedroom: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
+        mandir: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+        dining: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80',
+        handicraft: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=800&q=80'
+      };
+      const defaultFallback = categoryDefaultImages[cat] || 'assets/images/image.png';
+      const finalImage = currentProductImages[0] || defaultFallback;
+      const finalImagesList = currentProductImages.length > 0 ? currentProductImages : [defaultFallback];
+
+      const productPayload = {
+        title: document.getElementById('formTitle').value.trim(),
+        category: cat,
+        categoryName: categoryNamesMap[cat] || 'Furniture',
+        price: price,
+        originalPrice: mrp || price,
+        discount: discount,
+        woodType: document.getElementById('formWood').value.trim(),
+        badge: document.getElementById('formBadge').value || '',
+        warranty: document.getElementById('formWarranty').value.trim() || '10 Years Wood Warranty',
+        inStock: isProductInStock, // TRUE for In Stock, FALSE for Out of Stock
+        isFeatured: document.getElementById('formFeatured').checked,
+        image: finalImage,
+        images: finalImagesList,
+        dimensions: document.getElementById('formDimensions').value.trim() || 'Custom Standard',
+        finish: finishArray.length > 0 ? finishArray : ['Natural Teak', 'Dark Walnut'],
+        rating: Number(document.getElementById('formRating').value) || 5.0,
+        reviewCount: Number(document.getElementById('formReviews').value) || 1,
+        description: document.getElementById('formDesc').value.trim() || 'Handcrafted solid wood product.'
+      };
+
+      try {
+        if (editingId) {
+          // EDIT MODE
+          productPayload.id = editingId;
+          await updateProductInDB(editingId, productPayload);
+          alert(`✅ Product #${editingId} successfully saved to Cloud Database with ${finalImagesList.length} photo(s)!`);
+        } else {
+          // ADD NEW MODE
+          const newId = 'rf-' + Date.now().toString().slice(-4);
+          productPayload.id = newId;
+          await createProductInDB(productPayload);
+          alert(`🎉 New product successfully created in Cloud Database with ${finalImagesList.length} photo(s)!`);
+        }
+
+        closeProductModal();
+
+        // Re-render table dynamically and update UI smoothly
+        await renderAdminProductsTable();
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      } catch (err) {
+        console.error('Save product error:', err);
+        alert('Error saving product: ' + err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    }
+
+    // ----------------------------------------------------
+    // 7. DELETE PRODUCT WITH AUTO-REFRESH
+    // ----------------------------------------------------
+    async function handleDelete(id) {
+      if (confirm(`Are you sure you want to permanently delete Product #${id}?`)) {
+        try {
+          await deleteProductFromDB(id);
+          alert(`🗑️ Product #${id} successfully deleted!`);
+          await renderAdminProductsTable();
+        } catch (err) {
+          alert('Error deleting product: ' + err.message);
+        }
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await renderAdminProductsTable();
+
+      // Check if redirected from store with ?edit=productId
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('edit');
+      if (editId) {
+        setTimeout(() => {
+          openEditProductModal(editId);
+        }, 100);
+      }
+    });
+  </script>
+</body>
+
+</html>

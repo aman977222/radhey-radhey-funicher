@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Inquiries & Photos — Radhey Radhey Furniture Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .inq-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid lightgray;
+      padding: 18px;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .inq-card:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+      border-color: lightgray;
+    }
+    .inq-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid whitesmoke;
+      margin-bottom: 14px;
+    }
+    .inq-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .inq-badge.new { background: bisque; color: brown; }
+    .inq-badge.contacted { background: lavender; color: indigo; }
+    .inq-badge.quoted { background: aliceblue; color: blue; }
+    .inq-badge.completed { background: honeydew; color: forestgreen; }
+
+    .inq-photos-strip {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .inq-photo-thumb {
+      width: 90px;
+      height: 90px;
+      border-radius: 8px;
+      border: 2px solid lightgray;
+      object-fit: cover;
+      cursor: pointer;
+      background: whitesmoke;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .inq-photo-thumb:hover {
+      transform: scale(1.05);
+      border-color: red;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .lightbox-content {
+      background: black;
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      border: 1px solid darkslategray;
+    }
+    .lightbox-header {
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: darkslategray;
+      color: white;
+    }
+    .lightbox-img-wrap {
+      padding: 16px;
+      text-align: center;
+      background: black;
+    }
+    .lightbox-img-wrap img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+    .lightbox-footer {
+      padding: 12px 18px;
+      background: darkslategray;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif; color: white;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block; color: white;">RADHEY RADHEY</strong>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" style="color: darkred; font-weight: 700;">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html" class="active" style="background: red; color: white; font-weight: 700;">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: black; margin: 0;">📩 Customer Inquiries & Sample Photos</h2>
+        <span id="inqCountBadge" style="background: mistyrose; color: darkred; font-size: 0.78rem; font-weight: 800; padding: 3px 10px; border-radius: 999px;">0 Inquiries</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button onclick="loadInquiriesList()" class="action-btn-sm" style="display: flex; align-items: center; gap: 6px; font-weight: 700; background: white; border: 1px solid lightgray; padding: 8px 14px; border-radius: 6px; cursor: pointer;">
+          🔄 Refresh List
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content" style="padding: 24px;">
+      
+      <!-- Metrics Overview -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div class="metric-card" style="background: white; padding: 16px; border-radius: 10px; border: 1px solid lightgray;">
+          <div style="font-size: 0.8rem; color: gray; font-weight: 700;">Total Inquiries</div>
+          <div id="statTotalInq" style="font-size: 1.6rem; font-weight: 800; color: black; margin-top: 4px;">0</div>
+        </div>
+        <div class="metric-card" style="background: white; padding: 16px; border-radius: 10px; border: 1px solid lightgray;">
+          <div style="font-size: 0.8rem; color: brown; font-weight: 700;">New / Pending</div>
+          <div id="statNewInq" style="font-size: 1.6rem; font-weight: 800; color: brown; margin-top: 4px;">0</div>
+        </div>
+        <div class="metric-card" style="background: white; padding: 16px; border-radius: 10px; border: 1px solid lightgray;">
+          <div style="font-size: 0.8rem; color: forestgreen; font-weight: 700;">With Reference Photos</div>
+          <div id="statWithPhotos" style="font-size: 1.6rem; font-weight: 800; color: forestgreen; margin-top: 4px;">0</div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div style="background: white; border-radius: 10px; padding: 16px; border: 1px solid lightgray; margin-bottom: 20px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="position: relative; flex: 1; min-width: 260px; max-width: 420px;">
+          <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: gray;"></i>
+          <input type="text" id="searchInqInput" placeholder="Search by customer name, phone, city, or ID..." oninput="filterInquiries()" style="width: 100%; padding: 9px 12px 9px 34px; border: 1px solid lightgray; border-radius: 8px; font-size: 0.86rem; outline: none;">
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: gray;">Status:</label>
+          <select id="filterInqStatus" onchange="filterInquiries()" style="padding: 8px 12px; border: 1px solid lightgray; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+            <option value="all">All Inquiries</option>
+            <option value="New">New</option>
+            <option value="In Discussion">In Discussion</option>
+            <option value="Quoted">Quoted</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inquiries Container -->
+      <div id="inquiriesListContainer">
+        <div style="text-align: center; padding: 50px 20px; background: white; border-radius: 12px; border: 1px solid lightgray;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+          <strong>Loading customer inquiries...</strong>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Photo Lightbox Modal -->
+  <div id="photoLightboxModal" class="lightbox-overlay" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <strong id="lightboxTitle">📷 Reference Photo</strong>
+        <button type="button" onclick="closeLightbox()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">✕</button>
+      </div>
+      <div class="lightbox-img-wrap">
+        <img id="lightboxImg" src="" alt="Reference Photo Full View">
+      </div>
+      <div class="lightbox-footer">
+        <a id="lightboxDownloadBtn" href="#" download="sample-reference.jpg" class="btn btn-red" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
+          📥 Download Full Resolution Photo
+        </a>
+        <button type="button" onclick="closeLightbox()" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem; border-color: slategray; color: white;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // Strict Auth Guard: Redirect if unauthorized URL access
+    const currentAdmin = enforceAdminAuth();
+
+    let allInquiries = [];
+
+    // Load Inquiries from Firestore and localStorage
+    async function loadInquiriesList() {
+      const container = document.getElementById('inquiriesListContainer');
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; border: 1px solid lightgray;">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">⏳</div>
+          <strong>Loading inquiries from cloud database...</strong>
+        </div>
+      `;
+
+      let list = [];
+
+      // 1. Try Firebase Firestore
+      try {
+        if (typeof initFirebaseCloud === 'function') {
+          const db = await initFirebaseCloud();
+          if (db) {
+            let snap;
+            try {
+              snap = await db.collection('inquiries').orderBy('createdAt', 'desc').get();
+            } catch (queryErr) {
+              snap = await db.collection('inquiries').get();
+            }
+            if (snap && !snap.empty) {
+              snap.forEach(doc => {
+                list.push({ ...doc.data(), id: doc.id });
+              });
+              list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Firestore inquiries load err:', err);
+      }
+
+      // 2. Fallback / Merge with LocalStorage
+      try {
+        const local = JSON.parse(localStorage.getItem('radha_inquiries_v1') || '[]');
+        local.forEach(item => {
+          if (!list.some(x => x.inquiryId === item.inquiryId)) {
+            list.push(item);
+          }
+        });
+      } catch (e) {}
+
+      allInquiries = list;
+      updateStats();
+      renderInquiries(allInquiries);
+    }
+
+    function updateStats() {
+      const total = allInquiries.length;
+      const newCount = allInquiries.filter(x => (x.status || 'New') === 'New').length;
+      const withPhotos = allInquiries.filter(x => (x.photos && x.photos.length > 0) || (x.photoUrls && x.photoUrls.length > 0)).length;
+
+      document.getElementById('statTotalInq').textContent = total;
+      document.getElementById('statNewInq').textContent = newCount;
+      document.getElementById('statWithPhotos').textContent = withPhotos;
+      document.getElementById('inqCountBadge').textContent = `${total} Inquiries`;
+    }
+
+    function filterInquiries() {
+      const q = (document.getElementById('searchInqInput')?.value || '').toLowerCase().trim();
+      const status = document.getElementById('filterInqStatus')?.value || 'all';
+
+      const filtered = allInquiries.filter(inq => {
+        const matchesQuery = !q || 
+          (inq.inquiryId && inq.inquiryId.toLowerCase().includes(q)) ||
+          (inq.customerName && inq.customerName.toLowerCase().includes(q)) ||
+          (inq.phone && inq.phone.includes(q)) ||
+          (inq.city && inq.city.toLowerCase().includes(q)) ||
+          (inq.category && inq.category.toLowerCase().includes(q)) ||
+          (inq.message && inq.message.toLowerCase().includes(q));
+
+        const matchesStatus = status === 'all' || (inq.status || 'New') === status;
+        return matchesQuery && matchesStatus;
+      });
+
+      renderInquiries(filtered);
+    }
+
+    function renderInquiries(items) {
+      const container = document.getElementById('inquiriesListContainer');
+      if (!items || items.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid lightgray; color: gray;">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">📭</div>
+            <strong style="font-size: 1.1rem; color: black; display: block; margin-bottom: 6px;">No Inquiries Found</strong>
+            <p style="font-size: 0.85rem; margin: 0;">Jab customer website ke contact form se inquiry bhejenge to wo yaha photo ke sath dikhai degi.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items.map(inq => {
+        const inqId = inq.inquiryId || inq.id || 'INQ-XXXX';
+        const name = inq.customerName || 'Customer';
+        const phone = inq.phone || '';
+        const city = inq.city || '-';
+        const country = inq.country || 'India';
+        const cat = inq.category || 'Custom Furniture';
+        const msg = inq.message || '-';
+        const status = inq.status || 'New';
+        
+        let dateStr = '';
+        if (inq.createdAt) {
+          const d = new Date(inq.createdAt);
+          dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ' at ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        const photos = inq.photos || inq.photoUrls || [];
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        const waPhone = cleanPhone.length === 10 ? ('91' + cleanPhone) : cleanPhone;
+        const waReplyText = encodeURIComponent(`Namaste ${name} ji! Radhey Radhey Furniture workshop ki taraf se aapki Inquiry #${inqId} (${cat}) ke bare me hum aapse sampark kar rahe hain.`);
+
+        return `
+          <div class="inq-card" id="card-${inqId}">
+            <div class="inq-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <strong style="font-size: 1.05rem; color: black;">${name}</strong>
+                  <span style="font-family: monospace; font-size: 0.8rem; background: whitesmoke; padding: 2px 8px; border-radius: 4px; font-weight: 700; color: slategray;">#${inqId}</span>
+                  <span class="inq-badge ${status.toLowerCase().replace(/\s+/g, '')}">${status}</span>
+                </div>
+                <div style="font-size: 0.78rem; color: gray; margin-top: 4px;">
+                  📅 ${dateStr} • 📍 ${city}${country ? ' (' + country + ')' : ''}
+                </div>
+              </div>
+
+              <!-- Status Selector -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <select onchange="updateInquiryStatus('${inqId}', this.value)" style="padding: 4px 8px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">
+                  <option value="New" ${status === 'New' ? 'selected' : ''}>New</option>
+                  <option value="In Discussion" ${status === 'In Discussion' ? 'selected' : ''}>In Discussion</option>
+                  <option value="Quoted" ${status === 'Quoted' ? 'selected' : ''}>Quoted</option>
+                  <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
+                </select>
+                <button onclick="deleteInquiry('${inqId}')" class="action-btn-sm" style="color: red; border: 1px solid lightpink; background: snow; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Delete Inquiry">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+              <div>
+                <span style="font-size: 0.74rem; font-weight: 700; color: gray; text-transform: uppercase;">📱 Phone Number:</span>
+                <div style="font-size: 0.92rem; font-weight: 700; color: black; margin-top: 2px;">
+                  <a href="tel:+${waPhone}" style="color: black; text-decoration: none;">${phone}</a>
+                </div>
+              </div>
+              <div>
+                <span style="font-size: 0.74rem; font-weight: 700; color: gray; text-transform: uppercase;">🛋️ Product Interest:</span>
+                <div style="font-size: 0.92rem; font-weight: 700; color: red; margin-top: 2px;">${cat}</div>
+              </div>
+            </div>
+
+            <!-- Customer Message -->
+            <div style="background: whitesmoke; border-left: 3px solid red; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; color: darkslategray; margin-bottom: 12px; line-height: 1.5;">
+              <strong style="font-size: 0.75rem; color: gray; display: block; margin-bottom: 3px;">📝 CUSTOMER REQUIREMENT:</strong>
+              ${msg}
+            </div>
+
+            <!-- Reference Photos Section -->
+            ${photos.length > 0 ? `
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed lightgray;">
+                <span style="font-size: 0.78rem; font-weight: 800; color: black; display: block; margin-bottom: 8px;">
+                  📷 Reference Photos (${photos.length} Photo${photos.length > 1 ? 's' : ''}):
+                </span>
+                <div class="inq-photos-strip">
+                  ${photos.map((imgSrc, idx) => `
+                    <div style="text-align: center;">
+                      <img src="${imgSrc}" class="inq-photo-thumb" onclick="openLightbox('${imgSrc}', 'Inquiry #${inqId} - Photo ${idx + 1}')" title="Click to enlarge">
+                      <a href="${imgSrc}" download="inq-${inqId}-photo-${idx + 1}.jpg" style="display: block; font-size: 0.72rem; color: royalblue; font-weight: 700; margin-top: 4px; text-decoration: none;">
+                        📥 Download
+                      </a>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : `
+              <div style="font-size: 0.78rem; color: gray; margin-top: 6px;">
+                📷 No reference photos attached with this inquiry.
+              </div>
+            `}
+
+            <!-- Quick Action Bar -->
+            <div style="display: flex; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid lightgray; flex-wrap: wrap;">
+              <a href="https://wa.me/${waPhone}?text=${waReplyText}" target="_blank" class="btn btn-red" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                <i class="bi bi-whatsapp"></i> Chat on WhatsApp
+              </a>
+              <a href="tel:+${waPhone}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-color: lightgray; color: black;">
+                <i class="bi bi-telephone"></i> Call Customer
+              </a>
+              <a href="../view-inquiry.html?id=${inqId}" target="_blank" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-color: lightgray; color: slategray;">
+                <i class="bi bi-box-arrow-up-right"></i> Customer View Link
+              </a>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Lightbox Modal Controls
+    function openLightbox(src, title) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightboxTitle').textContent = title || '📷 Reference Photo';
+      document.getElementById('lightboxDownloadBtn').href = src;
+      document.getElementById('photoLightboxModal').style.display = 'flex';
+    }
+
+    function closeLightbox(e) {
+      document.getElementById('photoLightboxModal').style.display = 'none';
+      document.getElementById('lightboxImg').src = '';
+    }
+
+    // Update Status
+    async function updateInquiryStatus(inqId, newStatus) {
+      const inq = allInquiries.find(x => x.inquiryId === inqId || x.id === inqId);
+      if (inq) inq.status = newStatus;
+
+      // Update LocalStorage
+      try {
+        localStorage.setItem('radha_inquiries_v1', JSON.stringify(allInquiries));
+      } catch (e) {}
+
+      // Update Firestore
+      try {
+        if (typeof initFirebaseCloud === 'function') {
+          const db = await initFirebaseCloud();
+          if (db) {
+            await db.collection('inquiries').doc(inqId).update({ status: newStatus });
+          }
+        }
+      } catch (err) {
+        console.warn('Firestore status update error:', err);
+      }
+
+      updateStats();
+      filterInquiries();
+    }
+
+    // Delete Inquiry
+    async function deleteInquiry(inqId) {
+      if (!confirm(`Are you sure you want to delete inquiry #${inqId}?`)) return;
+
+      allInquiries = allInquiries.filter(x => x.inquiryId !== inqId && x.id !== inqId);
+      try {
+        localStorage.setItem('radha_inquiries_v1', JSON.stringify(allInquiries));
+      } catch (e) {}
+
+      try {
+        if (typeof initFirebaseCloud === 'function') {
+          const db = await initFirebaseCloud();
+          if (db) {
+            await db.collection('inquiries').doc(inqId).delete();
+          }
+        }
+      } catch (err) {
+        console.warn('Firestore delete error:', err);
+      }
+
+      updateStats();
+      filterInquiries();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadInquiriesList);
+  </script>
+</body>
+</html>

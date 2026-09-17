@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Wooden Furniture & Handicrafts — Radhey Radhey Furniture</title>
+  <meta name="description"
+    content="Browse our complete catalog of handcrafted Sheesham & Teak wood furniture, sofas, beds, dining sets, mandirs, and handicrafts with filter by category and price.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    /* Shop Layout Specifics */
+    .shop-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+      margin: 40px auto;
+    }
+
+    .shop-sidebar {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      align-self: start;
+      position: sticky;
+      top: 90px;
+    }
+
+    .sidebar-widget {
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .sidebar-widget:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .widget-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-dark);
+    }
+
+    .filter-options label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: gray;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .filter-options input[type="radio"],
+    .filter-options input[type="checkbox"] {
+      accent-color: var(--primary-red);
+      width: 16px;
+      height: 16px;
+    }
+
+    .price-range-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .price-range-box input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+    }
+
+    .shop-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      margin-bottom: 25px;
+      border: 1px solid var(--border-light);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .sort-select {
+      padding: 8px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      background: white;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .page-header-banner {
+      background: black;
+      color: white;
+      padding: 40px 0;
+      border-bottom: 2px solid var(--primary-red);
+    }
+
+    .breadcrumb {
+      display: flex;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: gray;
+      margin-bottom: 10px;
+    }
+
+    .breadcrumb a {
+      color: gray;
+    }
+
+    .breadcrumb span.active {
+      color: var(--primary-red);
+    }
+
+    @media (max-width: 900px) {
+      .shop-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .shop-sidebar {
+        position: static;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= TOP ANNOUNCEMENT BAR ================= -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span><span class="tag">SHOP ALL</span> 🔴 100% Solid Seasoned Wood Guarantee on All Products</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+919772225296">
+          <i class="bi bi-telephone"></i>
+          Call / Support: +91 9772225296
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-search">
+        <form id="headerSearchForm" class="search-box">
+          <input type="text" id="mainSearchInput" placeholder="Search Sofa, Bed, Mandir, Handicrafts...">
+          <button type="submit" class="search-btn">
+            <i class="bi bi-search"></i>
+          </button>
+        </form>
+        <div id="searchResultsDropdown" class="search-results-dropdown"></div>
+      </div>
+
+      <div class="header-actions">
+        <a href="user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+
+        <a href="cart.html" class="action-btn" title="View Cart">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+
+        <a href="user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+
+        <button class="mobile-nav-toggle" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
+      </div>
+    </div>
+
+    <div class="nav-categories-bar">
+      <div class="container">
+        <ul class="nav-links" style="display: flex; justify-content: center;">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="shop.html" class="active">All Products</a></li>
+          <li><a href="category.html">Categories</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= BREADCRUMB & HEADER ================= -->
+  <div class="page-header-banner">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a> / <span class="active">Shop Catalog</span>
+      </div>
+      <h1 style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 800;">
+        Explore All <span style="color: var(--primary-red);">Furniture & Handicrafts</span>
+      </h1>
+      <p style="color: gray; font-size: 0.95rem; margin-top: 5px;">
+        100% genuine solid wood products manufactured directly at our artisan workshops.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= MAIN SHOP SECTION ================= -->
+  <div class="container">
+    <div class="shop-layout">
+      <!-- SIDEBAR FILTERS -->
+      <aside class="shop-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: black;">Filter Products</h3>
+          <button id="resetFiltersBtn" style="color: var(--primary-red); font-size: 0.8rem; font-weight: 700;">Reset
+            All</button>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="sidebar-widget">
+          <div class="widget-title">Categories</div>
+          <div class="filter-options">
+            <label><input type="radio" name="filterCat" value="all" checked> All Categories</label>
+            <label><input type="radio" name="filterCat" value="living"> Living Room</label>
+            <label><input type="radio" name="filterCat" value="bedroom"> Bedroom Furniture</label>
+            <label><input type="radio" name="filterCat" value="dining"> Dining Sets</label>
+            <label><input type="radio" name="filterCat" value="mandir"> Pooja Mandir</label>
+            <label><input type="radio" name="filterCat" value="handicraft"> Indian Handicrafts</label>
+          </div>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="sidebar-widget">
+          <div class="widget-title">Max Price (₹)</div>
+          <input type="range" id="priceRange" min="3000" max="80000" step="2000" value="80000"
+            style="width: 100%; accent-color: var(--primary-red);">
+          <div
+            style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; margin-top: 6px; color: gray;">
+            <span>₹3,000</span>
+            <span id="priceDisplay" style="color: var(--primary-red); font-size: 0.95rem;">₹80,000</span>
+          </div>
+        </div>
+
+        <!-- Wood Material Filter -->
+        <div class="sidebar-widget">
+          <div class="widget-title">Wood & Material</div>
+          <div class="filter-options">
+            <label><input type="checkbox" class="wood-filter" value="Sheesham"> Sheesham Wood</label>
+            <label><input type="checkbox" class="wood-filter" value="Teak"> Teak Wood (Sagwan)</label>
+            <label><input type="checkbox" class="wood-filter" value="Mango"> Mango Wood</label>
+            <label><input type="checkbox" class="wood-filter" value="Brass"> Brass & Craft</label>
+          </div>
+        </div>
+
+        <!-- In-Stock Filter -->
+        <div class="sidebar-widget">
+          <div class="widget-title">Availability</div>
+          <div class="filter-options">
+            <label><input type="checkbox" id="inStockOnly" checked> In-Stock Ready to Ship</label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- SHOP PRODUCT RESULTS -->
+      <main>
+        <div class="shop-controls">
+          <div id="productCountStatus" style="font-size: 0.95rem; font-weight: 600; color: gray;">
+            Showing all products
+          </div>
+          <div>
+            <label style="font-size: 0.85rem; font-weight: 600; margin-right: 8px; color: gray;">Sort By:</label>
+            <select id="sortProducts" class="sort-select">
+              <option value="featured">Featured First</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Top Customer Rated</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid Container -->
+        <div class="product-grid" id="shopProductsGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="emptyCatalogState"
+          style="display: none; text-align: center; padding: 60px 20px; background: white; border-radius: 16px;">
+          <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+          <h3 style="font-size: 1.3rem; margin-bottom: 8px;">No furniture matches your filter</h3>
+          <p style="color: gray; margin-bottom: 20px;">Try adjusting your price range or category filter.</p>
+          <button class="btn btn-red" onclick="document.getElementById('resetFiltersBtn').click()">Reset All
+            Filters</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+      <div>100% Solid Seasoned Teak & Sheesham Wood Guaranteed.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    // Filtering Logic
+    let currentCategory = 'all';
+    let maxPrice = 80000;
+    let selectedWoods = [];
+    let inStockOnly = true;
+    let sortBy = 'featured';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    const catParam = urlParams.get('cat');
+    const viewParam = urlParams.get('view');
+
+    if (catParam) {
+      currentCategory = catParam;
+      const radio = document.querySelector(`input[name="filterCat"][value="${catParam}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    let currentProductsCatalog = (typeof PRODUCTS_DATA !== 'undefined') ? [...PRODUCTS_DATA] : [];
+
+    function applyFilters() {
+      let results = [...currentProductsCatalog];
+
+      // Wishlist view check
+      if (viewParam === 'wishlist') {
+        const wishlist = getWishlist();
+        results = results.filter(p => wishlist.includes(p.id));
+        document.getElementById('productCountStatus').textContent = `Showing Saved Wishlist (${results.length} items)`;
+      } else {
+        // Search query
+        if (searchParam) {
+          const q = searchParam.toLowerCase();
+          results = results.filter(p =>
+            p.title.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.categoryName.toLowerCase().includes(q)
+          );
+        }
+
+        // Category
+        if (currentCategory !== 'all') {
+          results = results.filter(p => p.category === currentCategory);
+        }
+
+        // Price
+        results = results.filter(p => p.price <= maxPrice);
+
+        // Wood materials
+        if (selectedWoods.length > 0) {
+          results = results.filter(p => selectedWoods.some(w => p.woodType.includes(w)));
+        }
+
+        // In Stock
+        if (inStockOnly) {
+          results = results.filter(p => p.inStock);
+        }
+      }
+
+      // Sorting
+      if (sortBy === 'price-asc') {
+        results.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'price-desc') {
+        results.sort((a, b) => b.price - a.price);
+      } else if (sortBy === 'rating') {
+        results.sort((a, b) => b.rating - a.rating);
+      }
+
+      // Render
+      const grid = document.getElementById('shopProductsGrid');
+      const emptyState = document.getElementById('emptyCatalogState');
+      const countStatus = document.getElementById('productCountStatus');
+
+      if (viewParam !== 'wishlist') {
+        countStatus.textContent = `Showing ${results.length} products`;
+      }
+
+      if (results.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'block';
+      } else {
+        grid.style.display = 'grid';
+        emptyState.style.display = 'none';
+        grid.innerHTML = results.map(p => renderProductCard(p)).join('');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Event Listeners
+      document.querySelectorAll('input[name="filterCat"]').forEach(r => {
+        r.addEventListener('change', (e) => {
+          currentCategory = e.target.value;
+          applyFilters();
+        });
+      });
+
+      const priceSlider = document.getElementById('priceRange');
+      const priceDisplay = document.getElementById('priceDisplay');
+      priceSlider.addEventListener('input', (e) => {
+        maxPrice = Number(e.target.value);
+        priceDisplay.textContent = formatPrice(maxPrice);
+        applyFilters();
+      });
+
+      document.querySelectorAll('.wood-filter').forEach(cb => {
+        cb.addEventListener('change', () => {
+          selectedWoods = Array.from(document.querySelectorAll('.wood-filter:checked')).map(c => c.value);
+          applyFilters();
+        });
+      });
+
+      document.getElementById('inStockOnly').addEventListener('change', (e) => {
+        inStockOnly = e.target.checked;
+        applyFilters();
+      });
+
+      document.getElementById('sortProducts').addEventListener('change', (e) => {
+        sortBy = e.target.value;
+        applyFilters();
+      });
+
+      document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+        currentCategory = 'all';
+        document.querySelector('input[name="filterCat"][value="all"]').checked = true;
+        maxPrice = 80000;
+        priceSlider.value = 80000;
+        priceDisplay.textContent = formatPrice(80000);
+        document.querySelectorAll('.wood-filter').forEach(c => c.checked = false);
+        selectedWoods = [];
+        document.getElementById('inStockOnly').checked = true;
+        inStockOnly = true;
+        applyFilters();
+      });
+
+      getAllProducts().then(prods => {
+        if (prods && prods.length > 0) {
+          currentProductsCatalog = prods;
+          applyFilters();
+        }
+      });
+
+      window.addEventListener('radha_products_synced', (e) => {
+        if (e.detail && Array.isArray(e.detail) && e.detail.length > 0) {
+          currentProductsCatalog = e.detail;
+          applyFilters();
+        }
+      });
+
+      applyFilters();
+    });
+  </script>
+</body>
+
+</html>

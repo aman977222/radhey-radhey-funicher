@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>radhey radhey funicher and handcraft</title>
+  <meta name="description"
+    content="Discover premium Sheesham and Teak wood handcrafted furniture, royal beds, carved sofas, pooja mandirs, and traditional Indian handicrafts at Radhey Radhey Furniture. Direct workshop prices & all-jaipur delivery.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span><span class="tag">SPECIAL OFFER</span> 🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak
+          Wood</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+919772225296">
+          <i class="bi bi-telephone" style="margin-right: 4px; color: white;"></i>
+          Call / Support: +91 9772225296
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <!-- Brand Logo -->
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">All Types of Glass, Aluminium &amp; Steel Work</span>
+        </div>
+      </a>
+
+      <!-- Search Input with Auto Suggest -->
+      <div class="header-search">
+        <form id="headerSearchForm" class="search-box">
+          <input type="text" id="mainSearchInput" placeholder="Search Sofa, Bed, Mandir, Handicrafts..."
+            autocomplete="off">
+          <button type="submit" class="search-btn" title="Search" style="border: none; cursor: pointer;">
+            <i class="bi bi-search" style="font-size: 1rem;"></i>
+          </button>
+        </form>
+        <div id="searchResultsDropdown" class="search-results-dropdown"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <!-- Wishlist -->
+        <a href="user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+
+        <!-- Cart -->
+        <a href="cart.html" class="action-btn" title="View Cart">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+
+        <!-- Customer Account -->
+        <a href="user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-nav-toggle" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
+      </div>
+    </div>
+
+    <!-- Category Bar -->
+    <div class="nav-categories-bar">
+      <div class="container">
+        <ul class="nav-links" style="display: flex; justify-content: center;">
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact &amp; Custom Order</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Glass, Aluminium & Steel Work Showcase Strip -->
+  <section class="fabrication-showcase-section" aria-label="Glass, Aluminium & Steel Work Services">
+    <div class="fabrication-container">
+      <div class="fabrication-banner-wrapper">
+        <div class="fabrication-ribbon">
+          All Types of Glass, Aluminium &amp; Steel Work
+        </div>
+      </div>
+
+      <div class="fabrication-grid">
+        <!-- 1. Windows -->
+        <a href="Aluminium products/windows.html" class="fabrication-item" title="Windows (Aluminium / Glass)">
+          <div class="fabrication-circle">
+            <i class="bi bi-window-split"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Windows</span>
+            <span class="fabrication-sub">(Aluminium / Glass)</span>
+          </div>
+        </a>
+
+        <!-- 2. Doors -->
+        <a href="Aluminium products/doors.html" class="fabrication-item" title="Doors (Sliding / Hinged / Folding)">
+          <div class="fabrication-circle">
+            <i class="bi bi-door-open-fill"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Doors</span>
+            <span class="fabrication-sub">(Sliding / Hinged / Folding)</span>
+          </div>
+        </a>
+
+        <!-- 3. Gates -->
+        <a href="Aluminium products/gates.html" class="fabrication-item" title="Gates (Main Gate / Grill Gate)">
+          <div class="fabrication-circle">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Gates</span>
+            <span class="fabrication-sub">(Main Gate / Grill Gate)</span>
+          </div>
+        </a>
+
+        <!-- 4. Mirrors -->
+        <a href="Aluminium products/mirrors.html" class="fabrication-item" title="Mirrors (Plain / Designer)">
+          <div class="fabrication-circle">
+            <i class="bi bi-circle"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Mirrors</span>
+            <span class="fabrication-sub">(Plain / Designer)</span>
+          </div>
+        </a>
+
+        <!-- 5. Partitions -->
+        <a href="Aluminium products/partitions.html" class="fabrication-item" title="Partitions (Office / Home)">
+          <div class="fabrication-circle">
+            <i class="bi bi-layout-split"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Partitions</span>
+            <span class="fabrication-sub">(Office / Home)</span>
+          </div>
+        </a>
+
+        <!-- 6. Railings -->
+        <a href="Aluminium products/railings.html" class="fabrication-item" title="Railings (Staircase / Balcony)">
+          <div class="fabrication-circle">
+            <i class="bi bi-reception-4"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Railings</span>
+            <span class="fabrication-sub">(Staircase / Balcony)</span>
+          </div>
+        </a>
+
+        <!-- 7. Shower Cubicles -->
+        <a href="Aluminium products/shower.html" class="fabrication-item" title="Shower Cubicles">
+          <div class="fabrication-circle">
+            <i class="bi bi-droplet-half"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Shower</span>
+            <span class="fabrication-title" style="margin-top:-2px;">Cubicles</span>
+          </div>
+        </a>
+
+        <!-- 8. Aluminium Fabrication -->
+        <a href="Aluminium products/aluminium.html" class="fabrication-item" title="Aluminium Fabrication">
+          <div class="fabrication-circle">
+            <i class="bi bi-buildings-fill"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Aluminium</span>
+            <span class="fabrication-title" style="margin-top:-2px;">Fabrication</span>
+          </div>
+        </a>
+
+        <!-- 9. Steel Work -->
+        <a href="Aluminium products/steel-work.html" class="fabrication-item" title="Steel Work">
+          <div class="fabrication-circle">
+            <i class="bi bi-hammer"></i>
+          </div>
+          <div class="fabrication-text-wrap">
+            <span class="fabrication-title">Steel Work</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero Showcase Banner -->
+  <section class="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>✨ 100% Handcrafted Sheesham & Teak Wood</span>
+          </div>
+          <h1>Crafted With Royal Passion & <span class="highlight-red">Timeless Heritage</span></h1>
+          <p>
+            Apne ghar ko dein ek shahi aur aakarshak look. Radhey Radhey Furniture lekar aaya hai traditional Indian
+            craftsmanship ke sath bane high quality sofas, beds, pooja mandirs aur handicrafts — seedhe hamari workshop
+            se aapke aangan tak.
+          </p>
+          <div class="hero-actions">
+            <a href="shop.html" class="btn btn-red">
+              <i class="bi bi-bag" style="font-size: 1.15rem; margin-right: 6px;"></i>
+              Explore Collection
+            </a>
+            <a href="contact.html" class="btn btn-outline">
+              Custom Order Inquiry
+            </a>
+          </div>
+
+          <div class="hero-features-strip">
+            <div class="strip-item">
+              <div class="icon">🌲</div>
+              <div class="text">
+                <strong>Solid Wood</strong>
+                <small>No Particle Board</small>
+              </div>
+            </div>
+            <div class="strip-item">
+              <div class="icon">🛡️</div>
+              <div class="text">
+                <strong>1 Yr Warranty</strong>
+                <small>Termite Proof</small>
+              </div>
+            </div>
+            <div class="strip-item">
+              <div class="icon">🚚</div>
+              <div class="text">
+                <strong>Safe Delivery</strong>
+                <small>Pan jaipur Shipping</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-image-wrapper">
+            <img src="assets/images/images.png" alt="Royal Sheesham Wood Sofa Set">
+            <div class="hero-float-card">
+              <div
+                style="background: red; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                👑
+              </div>
+              <div>
+                <small style="color: gray; display: block; font-size: 0.75rem; text-transform: uppercase;">Featured
+                  Masterpiece</small>
+                <strong>Royal Maharaja Carved Bed</strong>
+                <div class="price">/-<span
+                    style="font-size: 0.8rem; color: gray; text-decoration: line-through; font-weight: normal;"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular Categories -->
+  <section class="section" style="background: white;">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-subtitle">EXPLORE OUR SPECIALTIES</span>
+        <h2 class="section-title">Popular <span>Categories</span></h2>
+        <p class="section-desc">Har kamre aur har kone ke liye vishesh roop se bani royal lakdi ki designs</p>
+      </div>
+
+      <div class="category-grid">
+        <a href="category.html?cat=living" class="category-card">
+          <div class="cat-img-box">
+            <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=500&q=80"
+              alt="Living Room Furniture">
+          </div>
+          <h3>Living Room</h3>
+          <p>Sofa Sets, Recliners, Tables</p>
+          <span class="cat-link">Explore Category →</span>
+        </a>
+
+        <a href="category.html?cat=bedroom" class="category-card">
+          <div class="cat-img-box">
+            <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=500&q=80"
+              alt="Bedroom Furniture">
+          </div>
+          <h3>Bedroom Luxury</h3>
+          <p>King Beds, Wardrobes, Dressers</p>
+          <span class="cat-link">Explore Category →</span>
+        </a>
+
+        <a href="category.html?cat=dining" class="category-card">
+          <div class="cat-img-box">
+            <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=500&q=80"
+              alt="Dining Sets">
+          </div>
+          <h3>Dining Sets</h3>
+          <p>4 & 6 Seater Solid Wood</p>
+          <span class="cat-link">Explore Category →</span>
+        </a>
+
+        <a href="category.html?cat=mandir" class="category-card">
+          <div class="cat-img-box">
+            <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=500&q=80"
+              alt="Pooja Mandir">
+          </div>
+          <h3>Pooja Mandir</h3>
+          <p>Carved Teak & Sheesham Temples</p>
+          <span class="cat-link">Explore Category →</span>
+        </a>
+
+        <a href="category.html?cat=handicraft" class="category-card">
+          <div class="cat-img-box">
+            <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80"
+              alt="Indian Handicrafts">
+          </div>
+          <h3>Indian Handicrafts</h3>
+          <p>Jharokhas, Brass Art, Wall Decor</p>
+          <span class="cat-link">Explore Category →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Best Sellers -->
+  <section class="section" style="background: var(--bg-light);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-subtitle">HANDPICKED FOR YOU</span>
+        <h2 class="section-title">Best-Selling <span>Furniture & Crafts</span></h2>
+        <p class="section-desc">Graahkon dwara sabse zyada pasand kiye gaye solid wood products</p>
+      </div>
+
+      <div class="product-grid" id="featuredProductsContainer">
+        <!-- Injected via JavaScript from PRODUCTS_DATA -->
+      </div>
+
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="shop.html" class="btn btn-dark" style="padding: 14px 34px; font-size: 1rem;">
+          View Full Store Catalog (100+ Products) →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Heritage & Artisan Story -->
+  <section class="section heritage-section">
+    <div class="container">
+      <div class="heritage-grid">
+        <div class="heritage-content">
+          <span class="heritage-label">OUR ARTISAN HERITAGE</span>
+          <h2>Traditional Indian Woodcraft Built to Last Generations</h2>
+          <p>
+            Radhey Radhey Furniture me har ek furniture piece hamare vishisht karigaron ke hatho se tarasha jata hai.
+            Hum
+            keval 100% seasoned Sheesham aur Teak (Sagwan) wood ka upyog karte hain, jisme koi bhi MDF ya chemically
+            mixed particle board nahi hota.
+          </p>
+
+          <div class="artisan-features">
+            <div class="af-item">
+              <h4>Solid Wood Guarantee</h4>
+              <p>Certified chemical seasoning ke sath 0% fungus aur insect risk.</p>
+            </div>
+            <div class="af-item">
+              <h4>Custom Dimensions</h4>
+              <p>Aapke ghar ke hisab se customized size aur polish finish uplabdh.</p>
+            </div>
+            <div class="af-item">
+              <h4>Direct Workshop Pricing</h4>
+              <p>Bina kisi middleman commission ke behtareen factory rates.</p>
+            </div>
+            <div class="af-item">
+              <h4>Traditional Hand-Carving</h4>
+              <p>Peedhiyo purani naqqashi kala jo modern gharo me shaan badhati hai.</p>
+            </div>
+          </div>
+
+          <a href="about.html" class="btn btn-red">Read Our Full Story →</a>
+        </div>
+
+        <div class="heritage-media">
+          <div class="heritage-img-main">
+            <img src="assets\images\Heritage_logo.jpeg" alt="Master Wood Craftsman at work">
+          </div>
+          <div class="heritage-badge-overlay">
+            <strong>25+</strong>
+            <span>Years of Master Craftsmanship</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promo Strip -->
+  <section class="promo-strip">
+    <div class="container promo-content">
+      <div class="promo-text">
+        <h2>Want a Custom Furniture Design?</h2>
+        <p>Aapki pasand ki photo ya design hame WhatsApp karein, hum aapke liye same bana kar denge!</p>
+      </div>
+      <div>
+        <a href="contact.html" class="btn btn-dark" style="background: black; color: white; border: 1px solid white;">
+          💬 WhatsApp Custom Inquiry
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section" style="background: white;">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-subtitle">HAPPY HOMES</span>
+        <h2 class="section-title">What Our <span>Customers Say</span></h2>
+        <p class="section-desc">All-India deliver kiye gaye furniture aur handicrafts par graahko ka anubhav</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p>"Maine Sheesham wood ka Maharaja Sofa mangwaya tha. Finishing aur wood quality aisi hai jaisi 5 star
+            showroom me milti hai, par price bohot hi reasonable tha!"</p>
+          <div class="customer-info">
+            <div class="customer-avatar">RK</div>
+            <div class="customer-details">
+              <h4>Rajesh Kumar</h4>
+              <span>Verified Buyer — Jaipur</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p>"Radhey Radhey Furniture ka pooja mandir bohot shandar hai. Wood carving ki details aur brass bells ki
+            sound
+            ghar me pavitra mahaul bana deti hai. Safe packing ke sath mila."</p>
+          <div class="customer-info">
+            <div class="customer-avatar">PS</div>
+            <div class="customer-details">
+              <h4>Pooja Sharma</h4>
+              <span>Verified Buyer — Delhi NCR</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p>"Handcrafted Rajasthani Jharokha mirror aur dining table dono ek number hain. Customization ke liye inhone
+            WhatsApp par turant guidance di. Best furniture shop!"</p>
+          <div class="customer-info">
+            <div class="customer-avatar">AM</div>
+            <div class="customer-details">
+              <h4>Ankit Mehta</h4>
+              <span>Verified Buyer — Ahmedabad</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Col 1: Brand Info -->
+        <div class="footer-col">
+          <div class="brand-logo" style="margin-bottom: 16px;">
+            <div class="logo-icon">RR</div>
+            <div class="logo-text">
+              <h1>RADHEY <span>RADHEY</span></h1>
+              <p>Furniture & Handicraft</p>
+              <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+            </div>
+          </div>
+          <p>
+            Radhey Radhey Furniture & Handicrafts — Aapka vishwaspatra adda jahan milti hai 100% solid Sheesham aur Teak
+            wood furniture, royal handicrafts aur shahi mandir. Direct workshop se aapke ghar tak.
+          </p>
+          <p style="color: white; font-size: 0.85rem;">
+            🔴 <strong>100% Solid Seasoned Wood</strong> | 🛡️ <strong>Termite Resistance</strong>
+          </p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div class="footer-col">
+          <h3>Quick Links</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="shop.html">Browse All Furniture</a></li>
+            <li><a href="category.html?cat=mandir">Pooja Mandir Collection</a></li>
+            <li><a href="category.html?cat=handicraft">Indian Handicrafts</a></li>
+            <li><a href="about.html">About Workshop & Artisans</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Customer Support -->
+        <div class="footer-col">
+          <h3>Customer Support</h3>
+          <ul class="footer-links">
+            <li><a href="user/dashboard.html">Track My Order</a></li>
+            <li><a href="cart.html">My Shopping Cart</a></li>
+            <li><a href="contact.html">Custom Furniture Quote</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact & Workshop -->
+        <div class="footer-col">
+          <h3>Workshop & Store</h3>
+          <ul class="footer-contact">
+            <li>
+              <i class="bi bi-geo-alt"></i>
+              <span></span>
+            </li>
+            <li>
+              <i class="bi bi-telephone"></i>
+              <span>+91 9772225296 (10 AM - 8 PM)</span>
+            </li>
+            <li>
+              <i class="bi bi-envelope"></i>
+              <span>jangid7090@gmail.com</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © 2026 <strong>Radhey Radhey Furniture & Handicraft</strong>. All Rights Reserved.
+        </div>
+        <div>
+          Designed with 🔴 & ⚫ Theme for Royal Woodcraft.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp Chat -->
+  <a href="https://wa.me/+919772225296?text=Hello%20Radhey%20Radhey%20Furniture,%20I%20am%20interested%20in%20your%20furniture%20and%20handicrafts."
+    class="floating-whatsapp" title="Chat with us on WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+  </a>
+
+  <!-- Core Scripts -->
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    // Populate Featured Products (Instant local render + Live Cloud sync)
+    // ONLY Wooden Furniture & Handicraft products show here (Aluminium/Fabrication excluded)
+    const FABRICATION_CATS = ['windows', 'doors', 'gates', 'mirrors', 'partitions', 'railings', 'shower', 'aluminium', 'steel-work'];
+
+    function isFabricationProduct(p) {
+      if (!p) return false;
+      const cat = (p.category || '').toLowerCase().trim();
+      const catName = (p.categoryName || '').toLowerCase();
+      return FABRICATION_CATS.includes(cat) || 
+             cat.includes('aluminium') || 
+             cat.includes('aluminum') || 
+             cat.includes('steel') ||
+             catName.includes('aluminium') || 
+             catName.includes('aluminum') || 
+             catName.includes('steel');
+    }
+
+    function renderFeaturedUI(productsList) {
+      const container = document.getElementById('featuredProductsContainer');
+      if (container && Array.isArray(productsList)) {
+        // Exclude aluminium products, only show wooden furniture and handicrafts
+        const featured = productsList.filter(p => p.isFeatured && !isFabricationProduct(p));
+        if (featured.length > 0) {
+          container.innerHTML = featured.map(p => renderProductCard(p)).join('');
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Instant local render
+      const initialFeatured = getFeaturedProducts();
+      renderFeaturedUI(initialFeatured);
+
+      // 2. Fetch fresh products from Firebase Cloud Database
+      if (typeof getAllProducts === 'function') {
+        getAllProducts().then(cloudProducts => {
+          if (cloudProducts && cloudProducts.length > 0) {
+            renderFeaturedUI(cloudProducts);
+          }
+        }).catch(() => { });
+      }
+
+      // 3. Real-time listener for cloud sync
+      window.addEventListener('radha_products_synced', (e) => {
+        if (e.detail && Array.isArray(e.detail) && e.detail.length > 0) {
+          renderFeaturedUI(e.detail);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

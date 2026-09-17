@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Saved Wishlist — Radhey Radhey Furniture Customer Area</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 30px;
+      margin: 40px auto 70px;
+    }
+    .dash-sidebar {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--border-light);
+      height: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+    .dash-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: black;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      border: 3px solid var(--primary-red);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .dash-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      color: slategray;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    .dash-menu a.active, .dash-menu a:hover {
+      background: rgba(200, 16, 46, 0.08);
+      color: var(--primary-red);
+    }
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .wishlist-item-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+      position: relative;
+    }
+    .wishlist-item-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+    .wishlist-img-box {
+      width: 100%;
+      height: 220px;
+      position: relative;
+      background: whitesmoke;
+      overflow: hidden;
+    }
+    .wishlist-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .wishlist-item-card:hover .wishlist-img-box img {
+      transform: scale(1.05);
+    }
+    .wishlist-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--primary-red);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .wishlist-remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: red;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .wishlist-remove-btn:hover {
+      background: mistyrose;
+      transform: scale(1.1);
+    }
+    .wishlist-details {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .wishlist-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: black;
+      margin: 0 0 8px 0;
+      line-height: 1.35;
+      text-decoration: none;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .wishlist-title:hover {
+      color: var(--primary-red);
+    }
+    .wishlist-wood {
+      font-size: 0.8rem;
+      color: gray;
+      margin-bottom: 12px;
+    }
+    .wishlist-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: auto;
+      margin-bottom: 14px;
+    }
+    .wishlist-price {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary-red);
+    }
+    .wishlist-orig-price {
+      font-size: 0.85rem;
+      color: gray;
+      text-decoration: line-through;
+    }
+    .wishlist-actions {
+      display: flex;
+      gap: 8px;
+    }
+    @media (max-width: 860px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="../index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="../shop.html" class="action-btn"><span>Shop</span></a>
+        <a href="wishlist.html" class="action-btn active"><span class="badge-count wishlist-count-badge" style="display: none;">0</span><span>Wishlist</span></a>
+        <a href="../cart.html" class="action-btn"><span class="badge-count cart-count-badge" style="display: none;">0</span><span>Cart</span></a>
+        <a href="dashboard.html" class="action-btn"><span id="headerAccountName">Account</span></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="dash-sidebar">
+        <div style="text-align: center; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; margin-bottom: 20px;">
+          <div class="dash-avatar" id="dashAvatar">RR</div>
+          <h3 id="profileNameDisplay" style="font-size: 1.15rem; font-weight: 800; color: black; margin-bottom: 4px;">Valued Customer</h3>
+          <p id="profileEmailDisplay" style="font-size: 0.82rem; color: gray; margin: 0;">Registered Customer</p>
+        </div>
+
+        <nav class="dash-menu">
+          <a href="dashboard.html">📦 My Orders & Tracking</a>
+          <a href="profile.html">👤 Edit Profile</a>
+          <a href="wishlist.html" class="active">❤️ Saved Wishlist</a>
+          <a href="change-password.html">🔑 Change Password</a>
+          <a href="../index.html">🏠 Back to Store</a>
+          <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main>
+        <!-- Admin Notification Banner -->
+        <div id="adminNoticeBanner" style="display: none; background: bisque; border: 1px solid gold; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; color: brown;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 4px;">🛡️ Administrator Mode Active</div>
+              <div style="font-size: 0.88rem; color: brown;">
+                Aap Administrator ke roop me logged in hain. Ye aapki personal saved items list hai. Website ke products aur orders ko manage karne ke liye Admin Portal kholein.
+              </div>
+            </div>
+            <a href="../admin/dashboard.html" class="btn btn-dark" style="background: darkslategray; color: white; padding: 8px 18px; font-size: 0.88rem; border-radius: 6px; text-decoration: none; font-weight: 700;">
+              📊 Open Admin Dashboard →
+            </a>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-bottom: 25px;">
+          <div>
+            <h2 style="font-family: var(--font-serif); font-size: 1.8rem; font-weight: 800; margin: 0 0 6px 0;">
+              My Saved <span style="color: var(--primary-red);">Wishlist</span>
+            </h2>
+            <p style="color: gray; margin: 0; font-size: 0.92rem;">Your personal collection of saved handcrafted furniture designs.</p>
+          </div>
+          <span id="wishlistCountLabel" style="background: mistyrose; color: darkred; font-weight: 800; padding: 5px 12px; border-radius: 999px; font-size: 0.82rem;">
+            0 Saved Items
+          </span>
+        </div>
+
+        <!-- Wishlist Cards Container -->
+        <div id="wishlistItemsContainer" class="wishlist-grid">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyWishlistBox" style="display: none; text-align: center; padding: 65px 20px; background: white; border-radius: 16px; border: 1px solid var(--border-light);">
+          <div style="font-size: 3.5rem; margin-bottom: 14px;">❤️</div>
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: black; margin-bottom: 8px;">Aapki Wishlist Khali Hai</h3>
+          <p style="color: gray; max-width: 440px; margin: 0 auto 24px; font-size: 0.92rem; line-height: 1.5;">
+            You haven't saved any handcrafted designs to your wishlist yet. Tap the heart <strong>❤️</strong> button on any product in our catalog to save it here.
+          </p>
+          <a href="../shop.html" class="btn btn-red" style="padding: 12px 28px; font-weight: 800;">
+            Browse Furniture Catalog →
+          </a>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    // AUTH GUARD: Require User Login to access Wishlist
+    const user = getLoggedInCustomer();
+    if (!user) {
+      window.location.replace('../login.html?redirect=user/wishlist.html');
+    }
+
+    async function renderUserWishlist() {
+      const currentUser = getLoggedInCustomer();
+      if (!currentUser) return;
+
+      const role = (currentUser.role || 'user').toLowerCase();
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+
+      // Setup customer details in sidebar
+      if (currentUser.name) {
+        document.getElementById('profileNameDisplay').textContent = currentUser.name;
+        document.getElementById('dashAvatar').textContent = isAdminOrSuper ? (role === 'superadmin' ? '👑' : '🛡️') : currentUser.name.slice(0, 2).toUpperCase();
+        const hdr = document.getElementById('headerAccountName');
+        if (hdr) hdr.textContent = currentUser.name.split(' ')[0];
+      }
+      if (currentUser.email) {
+        document.getElementById('profileEmailDisplay').textContent = currentUser.email + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      } else if (currentUser.phone) {
+        document.getElementById('profileEmailDisplay').textContent = '+91 ' + currentUser.phone + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      }
+
+      // If Admin or Super Admin, adapt menu and show banner
+      if (isAdminOrSuper) {
+        const banner = document.getElementById('adminNoticeBanner');
+        if (banner) banner.style.display = 'block';
+
+        const menu = document.querySelector('.dash-menu');
+        if (menu) {
+          menu.innerHTML = `
+            <a href="../admin/dashboard.html" style="font-weight: 700; color: dodgerblue;">📊 Admin Dashboard</a>
+            <a href="../admin/manage-orders.html" style="font-weight: 700; color: dodgerblue;">📦 Manage All Orders</a>
+            <a href="../admin/manage-products.html" style="font-weight: 700;">🛋️ Manage Products</a>
+            <a href="../admin/site-settings.html" style="font-weight: 700;">⚙️ Website Settings</a>
+            <a href="dashboard.html">📦 My Personal Orders</a>
+            <a href="wishlist.html" class="active">❤️ My Saved Wishlist</a>
+            <a href="../index.html">🏠 Back to Store</a>
+            <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+          `;
+        }
+      }
+
+      const wishlistIds = getWishlist();
+      
+      // Load products catalog
+      let allProducts = [];
+      try {
+        if (typeof getAllProducts === 'function') {
+          allProducts = await getAllProducts();
+        }
+      } catch(e) {}
+
+      if (!allProducts || allProducts.length === 0) {
+        try {
+          const custom = localStorage.getItem('radha_furniture_custom_products_v1');
+          if (custom) allProducts = JSON.parse(custom);
+          else if (typeof PRODUCTS_DATA !== 'undefined') allProducts = PRODUCTS_DATA;
+        } catch(e) {
+          if (typeof PRODUCTS_DATA !== 'undefined') allProducts = typeof PRODUCTS_DATA !== 'undefined' ? PRODUCTS_DATA : [];
+        }
+      }
+
+      if (!allProducts || allProducts.length === 0) {
+        if (typeof PRODUCTS_DATA !== 'undefined') allProducts = PRODUCTS_DATA;
+      }
+
+      // Filter only products that are saved in the user's wishlist (robust string comparison)
+      const savedProducts = (allProducts || []).filter(p => {
+        if (!p) return false;
+        const pId = String(p.id || p._id || '');
+        return wishlistIds.some(wId => String(wId) === pId);
+      });
+
+      const container = document.getElementById('wishlistItemsContainer');
+      const emptyBox = document.getElementById('emptyWishlistBox');
+      const countLabel = document.getElementById('wishlistCountLabel');
+
+      countLabel.textContent = `${savedProducts.length} Saved Item${savedProducts.length === 1 ? '' : 's'}`;
+
+      if (savedProducts.length === 0) {
+        container.style.display = 'none';
+        emptyBox.style.display = 'block';
+        return;
+      }
+
+      emptyBox.style.display = 'none';
+      container.style.display = 'grid';
+
+      container.innerHTML = savedProducts.map(p => {
+        const prodId = p.id || p._id;
+        let imgSrc = p.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80';
+        if (!imgSrc.startsWith('http') && !imgSrc.startsWith('data:') && !imgSrc.startsWith('../') && !imgSrc.startsWith('/')) {
+          imgSrc = '../' + imgSrc;
+        }
+
+        const badgeHtml = p.badge ? `<span class="wishlist-badge">${p.badge}</span>` : '';
+        const inStock = p.inStock !== false;
+
+        return `
+        <div class="wishlist-item-card" id="wishlist_card_${prodId}">
+          <div class="wishlist-img-box">
+            <a href="../product-details.html?id=${prodId}">
+              <img src="${imgSrc}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80'">
+            </a>
+            ${badgeHtml}
+            <button class="wishlist-remove-btn" onclick="removeFromWishlistAndReRender('${prodId}')" title="Remove from Wishlist">
+              ✕
+            </button>
+          </div>
+
+          <div class="wishlist-details">
+            <a href="../product-details.html?id=${prodId}" class="wishlist-title" title="${p.title}">
+              ${p.title}
+            </a>
+            <div class="wishlist-wood">🪵 ${p.woodType || 'Solid Wood Masterpiece'}</div>
+
+            <div class="wishlist-price-row">
+              <span class="wishlist-price">${formatPrice(p.price)}</span>
+              ${p.originalPrice ? `<span class="wishlist-orig-price">${formatPrice(p.originalPrice)}</span>` : ''}
+              ${p.discount ? `<span style="font-size: 0.72rem; background: mistyrose; color: darkred; font-weight: 800; padding: 2px 6px; border-radius: 4px;">${p.discount}</span>` : ''}
+            </div>
+
+            <div class="wishlist-actions">
+              ${inStock ? `
+                <button class="btn btn-red btn-block" style="padding: 10px; font-size: 0.88rem; font-weight: 700;" onclick="handleWishlistAddToCart('${prodId}')">
+                  🛒 Move to Cart
+                </button>
+              ` : `
+                <button class="btn btn-block" style="padding: 10px; font-size: 0.88rem; background: whitesmoke; color: gray; cursor: not-allowed;" disabled>
+                  Out of Stock
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function removeFromWishlistAndReRender(productId) {
+      let wishlist = getWishlist();
+      const pIdStr = String(productId);
+      wishlist = wishlist.filter(id => String(id) !== pIdStr);
+      saveWishlist(wishlist);
+      showToast('Item removed from your wishlist', 'info');
+      renderUserWishlist();
+    }
+
+    function handleWishlistAddToCart(productId) {
+      const p = getProductById(productId);
+      if (p) {
+        const finish = Array.isArray(p.finish) && p.finish.length > 0 ? p.finish[0] : 'Natural Polish';
+        addToCart(productId, 1, finish);
+        
+        // Remove from wishlist after moving to cart
+        let wishlist = getWishlist();
+        const pIdStr = String(productId);
+        wishlist = wishlist.filter(id => String(id) !== pIdStr);
+        saveWishlist(wishlist);
+        renderUserWishlist();
+      } else {
+        showToast('Product not found in catalog', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await renderUserWishlist();
+    });
+
+    window.addEventListener('radha_wishlist_synced', async () => {
+      await renderUserWishlist();
+    });
+
+    window.addEventListener('radha_profile_synced', async () => {
+      await renderUserWishlist();
+    });
+  </script>
+</body>
+</html>

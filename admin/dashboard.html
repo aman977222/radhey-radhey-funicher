@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Radhey Radhey Furniture & Handicrafts</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block;">RADHEY RADHEY</strong>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html" class="active">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- ================= MAIN DASHBOARD ================= -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">📊 Admin Store Overview</h2>
+        <span id="dbStatusBadge" style="font-size: 0.76rem; font-weight: 800; padding: 4px 12px; border-radius: 999px; background: bisque; color: brown; display: inline-flex; align-items: center; gap: 6px; border: 1px solid gold;">
+          🔄 Connecting Database...
+        </span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <button type="button" onclick="loadStoreOverviewFromDB()" class="action-btn-sm" style="display: flex; align-items: center; gap: 6px; font-weight: 700; background: white; border: 1px solid lightgray; cursor: pointer; padding: 8px 14px; border-radius: 6px;" title="Fetch latest data directly from Cloud Database">
+          🔄 Refresh from DB
+        </button>
+        <button type="button" id="btnPushToCloud" onclick="handlePushDataToCloud()" class="action-btn-sm" style="display: flex; align-items: center; gap: 6px; font-weight: 800; background: red; color: white; border: none; cursor: pointer; padding: 8px 14px; border-radius: 6px;" title="Upload and sync all catalog products, orders, and admin accounts to Firebase Cloud Firestore">
+          🔥 Push Data to Firebase
+        </button>
+        <a href="manage-products.html?action=new" class="btn btn-red btn-sm">
+          + Add New Product
+        </a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="admin-avatar-display" style="width: 36px; height: 36px; border-radius: 50%; background: black; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem;">
+            RR
+          </div>
+          <div>
+            <span class="admin-user-name" style="font-size: 0.88rem; font-weight: 700; display: block; line-height: 1.2;">Store Admin</span>
+            <span class="admin-role-badge" style="font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block;">ADMIN</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Metric Cards (Database Powered) -->
+      <div class="metric-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="metric-card">
+          <div class="metric-icon">💰</div>
+          <div>
+            <div class="metric-value" id="metricRevenue">₹0</div>
+            <div class="metric-label">Total Store Revenue</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">📦</div>
+          <div>
+            <div class="metric-value" id="metricOrders">0</div>
+            <div class="metric-label">Total Customer Orders</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🛋️</div>
+          <div>
+            <div class="metric-value" id="metricProducts">0</div>
+            <div class="metric-label">Active Catalog Products</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">⏳</div>
+          <div>
+            <div class="metric-value" id="metricPending" style="color: red;">0</div>
+            <div class="metric-label">Pending Crafting / Shipments</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">👥</div>
+          <div>
+            <div class="metric-value" id="metricUsers">0</div>
+            <div class="metric-label">Registered Customers</div>
+          </div>
+        </div>
+
+        <a href="manage-inquiries.html" class="metric-card" style="text-decoration: none; color: inherit; cursor: pointer; border-left: 3px solid red;">
+          <div class="metric-icon">📩</div>
+          <div>
+            <div class="metric-value" id="metricInquiries" style="color: red;">0</div>
+            <div class="metric-label">Customer Inquiries & Photos →</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Recent Orders Table (Direct Database Sync) -->
+      <div class="admin-table-card">
+        <div class="admin-table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0;">Recent Customer Orders</h3>
+            <p style="font-size: 0.8rem; color: gray; margin: 0;" id="recentOrdersSubtext">Synchronized with database (Showing latest 5 orders)</p>
+          </div>
+          <a href="manage-orders.html" class="action-btn-sm" style="background: black; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 700;">
+            View All Orders →
+          </a>
+        </div>
+
+        <!-- Mobile Scroll Indicator Badge -->
+        <div class="mobile-table-scroll-hint">
+          <span>📱 <strong>Mobile View:</strong> Recent orders aur actions dekhne ke liye scroll karein</span>
+          <span class="scroll-arrow-badge">Scroll Horizontally ➔</span>
+        </div>
+
+        <div class="admin-table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 120px;">Order ID</th>
+                <th style="min-width: 150px;">Customer</th>
+                <th style="min-width: 120px;">Date</th>
+                <th style="min-width: 160px;">Items</th>
+                <th style="min-width: 120px;">Total Amount</th>
+                <th style="min-width: 110px;">Payment</th>
+                <th style="min-width: 120px;">Status</th>
+                <th style="min-width: 110px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="recentOrdersBody">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 36px; color: gray;">
+                  ⏳ Loading store records from database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // Strict URL Route Guard: Redirect immediately if unauthorized
+    const currentAdmin = enforceAdminAuth();
+
+    async function loadStoreOverviewFromDB() {
+      const statusBadge = document.getElementById('dbStatusBadge');
+      if (statusBadge) {
+        statusBadge.textContent = '🔄 Syncing Database...';
+        statusBadge.style.background = 'bisque';
+        statusBadge.style.color = 'brown';
+        statusBadge.style.borderColor = 'gold';
+      }
+
+      // Check Database Connection
+      try {
+        const db = await initFirebaseCloud();
+        if (db && isFirebaseReady) {
+          if (statusBadge) {
+            statusBadge.textContent = '🟢 Cloud Database Connected';
+            statusBadge.style.background = 'honeydew';
+            statusBadge.style.color = 'forestgreen';
+            statusBadge.style.borderColor = 'lightgreen';
+          }
+        } else {
+          if (statusBadge) {
+            statusBadge.textContent = '🟡 Local Database Mode';
+            statusBadge.style.background = 'whitesmoke';
+            statusBadge.style.color = 'slategray';
+            statusBadge.style.borderColor = 'lightgray';
+          }
+        }
+      } catch (e) {
+        if (statusBadge) {
+          statusBadge.textContent = '🟡 Database Synchronized';
+          statusBadge.style.background = 'whitesmoke';
+          statusBadge.style.color = 'slategray';
+          statusBadge.style.borderColor = 'lightgray';
+        }
+      }
+
+      // Fetch Metrics from Database
+      try {
+        const metrics = await fetchAdminMetricsFromDB();
+        document.getElementById('metricRevenue').textContent = formatINR(metrics.totalRevenue);
+        document.getElementById('metricOrders').textContent = metrics.totalOrders;
+        document.getElementById('metricProducts').textContent = metrics.activeProducts;
+        document.getElementById('metricPending').textContent = metrics.pendingOrders;
+        const usersEl = document.getElementById('metricUsers');
+        if (usersEl) usersEl.textContent = metrics.totalUsers;
+
+        // Inquiries count
+        try {
+          let inqCount = 0;
+          if (firestoreDB) {
+            const inqSnap = await firestoreDB.collection('inquiries').get();
+            inqCount = inqSnap.size;
+          } else {
+            const localInq = JSON.parse(localStorage.getItem('radha_inquiries_v1') || '[]');
+            inqCount = localInq.length;
+          }
+          const inqEl = document.getElementById('metricInquiries');
+          if (inqEl) inqEl.textContent = inqCount;
+        } catch (e) {
+          const localInq = JSON.parse(localStorage.getItem('radha_inquiries_v1') || '[]');
+          const inqEl = document.getElementById('metricInquiries');
+          if (inqEl) inqEl.textContent = localInq.length;
+        }
+      } catch (err) {
+        console.error('Error fetching metrics from DB:', err);
+      }
+
+      // Fetch Recent Orders from Database
+      const tbody = document.getElementById('recentOrdersBody');
+      try {
+        const allOrders = await fetchAdminOrdersFromDB();
+        // Exclude any legacy sample orders
+        const cleanOrders = (allOrders || []).filter(o => o.orderId !== 'RF-84920' && o.orderId !== 'RF-84918');
+        const orders = cleanOrders.slice(0, 5);
+
+        if (!orders || orders.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 45px 20px; color: gray;">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">📭</div>
+                <strong style="font-size: 1rem; color: black; display: block;">No orders in database yet</strong>
+                <p style="font-size: 0.82rem; margin: 6px 0 0; color: gray;">When customers place furniture orders on your store, they will automatically appear here.</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = orders.map(ord => {
+          const firstItem = (ord.items && ord.items[0]) || {};
+          let imgSrc = firstItem.image;
+          if (!imgSrc && typeof PRODUCTS_DATA !== 'undefined' && firstItem.id) {
+            const m = PRODUCTS_DATA.find(p => p.id === firstItem.id);
+            if (m) imgSrc = m.image;
+          }
+          if (!imgSrc) imgSrc = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80';
+          if (!imgSrc.startsWith('http') && !imgSrc.startsWith('data:') && !imgSrc.startsWith('../') && !imgSrc.startsWith('/')) {
+            imgSrc = '../' + imgSrc;
+          }
+
+          const itemCount = (ord.items && ord.items.length) || 1;
+          const extraBadge = itemCount > 1 ? `<span style="font-size: 0.7rem; background: lightgray; padding: 1px 5px; border-radius: 4px; color: slategray;">+${itemCount - 1} more</span>` : '';
+
+          // Determine status color class
+          const statusText = ord.status || 'Confirmed';
+          const lowerStatus = statusText.toLowerCase();
+          let statusClass = 'confirmed';
+          if (lowerStatus.includes('crafting')) statusClass = 'crafting';
+          else if (lowerStatus.includes('dispatched')) statusClass = 'dispatched';
+          else if (lowerStatus.includes('delivered')) statusClass = 'delivered';
+          else if (lowerStatus.includes('cancelled')) statusClass = 'cancelled';
+
+          return `
+            <tr>
+              <td><strong style="color: red; font-family: monospace;">#${ord.orderId || ord._id}</strong></td>
+              <td>
+                <strong>${ord.customerName || 'Customer'}</strong>
+                <div style="font-size: 0.75rem; color: gray;">${ord.phone || ''}</div>
+              </td>
+              <td>${ord.date || new Date().toLocaleDateString('en-IN')}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <img src="${imgSrc}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid lightgray;" onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80'">
+                  <div style="font-size: 0.82rem; line-height: 1.25;">
+                    <div style="font-weight: 600; color: black; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${firstItem.title || 'Furniture'}</div>
+                    ${extraBadge}
+                  </div>
+                </div>
+              </td>
+              <td><strong style="color: black;">${formatINR(ord.totalAmount)}</strong></td>
+              <td><span style="font-size: 0.8rem; font-weight: 600; color: green;">${ord.paymentMode || 'Cash on Delivery (COD)'}</span></td>
+              <td>
+                <span class="badge-status ${statusClass}">● ${statusText}</span>
+              </td>
+              <td>
+                <a href="manage-orders.html" class="action-btn-sm" style="text-decoration: none; font-weight: 700;">Manage</a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Error fetching orders for dashboard:', err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 30px; color: red;">
+              ⚠️ Error loading orders from database. Please click <strong>Refresh from DB</strong> above.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    async function handlePushDataToCloud() {
+      const btn = document.getElementById('btnPushToCloud');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Syncing to Cloud...';
+
+      const res = await fbSyncAllToCloud();
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+
+      if (res.success) {
+        alert(res.message + '\n\nAb Firebase Console ko refresh karein, aapko "products", "users" aur "orders" collections dikhenge!');
+        await loadStoreOverviewFromDB();
+      } else {
+        if (res.isPermissionError) {
+          alert('❌ FIREBASE RULES ERROR (PERMISSION DENIED):\n\nFirebase Cloud ne data save karne se mana kar diya kyunki Rules locked hain.\n\nसमाधान (Fix):\n1. Firebase Console me "Rules" tab kholein.\n2. "allow read, write: if true;" paste karein.\n3. "Publish" button par click karein.\n4. Uske baad fir se ye "Push Data to Firebase" button dabayein!');
+        } else {
+          alert('Sync Failed: ' + res.message);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadStoreOverviewFromDB();
+    });
+  </script>
+</body>
+</html>

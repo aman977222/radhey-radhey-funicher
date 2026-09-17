@@ -1,0 +1,16 @@
+{
+  "name": "Radhey Radhey Furniture & Handicrafts",
+  "short_name": "Radhey Radhey",
+  "description": "Premium Solid Sheesham & Teak Wood Handcrafted Furniture",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "black",
+  "theme_color": "red",
+  "icons": [
+    {
+      "src": "assets/images/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
