@@ -498,10 +498,37 @@ function resolveStoreImg(src, category = '') {
 }
 
 // ---------------------------------------------------------------
+// ACTIVE STORE SETTINGS HELPER
+// ---------------------------------------------------------------
+function getActiveStoreSettings() {
+  const fallback = (typeof DEFAULT_SITE_SETTINGS !== 'undefined') ? DEFAULT_SITE_SETTINGS : {
+    brandName: 'Radhey Radhey Funicher',
+    phone: '9772225296',
+    whatsapp: '9772225296',
+    email: 'jangid7090@gmail.com',
+    bannerText: '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood',
+    address: 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020',
+    couponCode: 'RADHEY10',
+    themeColor: 'Red & Black Theme'
+  };
+
+  try {
+    const local = localStorage.getItem('radha_store_settings_v1');
+    if (local) {
+      return { ...fallback, ...JSON.parse(local) };
+    }
+  } catch (e) {}
+
+  return { ...fallback };
+}
+
+// ---------------------------------------------------------------
 // FABRICATION WHATSAPP QUOTATION URL GENERATOR
 // ---------------------------------------------------------------
 function getFabricationWhatsAppUrl(product, customName = '') {
-  const phone = '919772225296';
+  const settings = getActiveStoreSettings();
+  const cleanWa = (settings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+  const phone = '91' + cleanWa;
   const origin = window.location.origin || '';
 
   // 1. Customer details (from parameter, active session, or localStorage)
@@ -517,7 +544,7 @@ function getFabricationWhatsAppUrl(product, customName = '') {
   let savedGuestName = localStorage.getItem('radha_guest_customer_name') || '';
   let custName = customName || (user ? (user.name || user.fullName || '') : savedGuestName);
   let custPhone = user ? (user.phone || user.mobile || '') : (localStorage.getItem('radha_guest_customer_phone') || '');
-  let custCity = user ? (user.city || user.address || '') : 'Kekri / Rajasthan';
+  let custCity = user ? (user.city || user.address || '') : 'Jaipur / Rajasthan';
 
   // Dynamic Project Base URL Resolver (supports GitHub Pages subfolders & live domains)
   function getProjectRootUrl() {
@@ -618,7 +645,9 @@ async function handleFabricationWhatsAppInquiry(productId) {
     product = window.allFabProducts.find(p => p.id === productId || p._id === productId);
   }
   if (!product) {
-    window.open(`https://wa.me/919772225296?text=${encodeURIComponent('Hello Radhey Radhey Workshop, I want an inquiry for Aluminium Fabrication Model #' + productId)}`, '_blank');
+    const settings = getActiveStoreSettings();
+    const cleanWa = (settings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+    window.open(`https://wa.me/91${cleanWa}?text=${encodeURIComponent('Hello ' + (settings.brandName || 'Radhey Radhey') + ' Workshop, I want an inquiry for Aluminium Fabrication Model #' + productId)}`, '_blank');
     return;
   }
 
@@ -1046,39 +1075,179 @@ function updateHeaderAuthState() {
 // ---------------------------------------------------------------
 // APPLY STORE & WEBSITE CONFIGURATIONS DYNAMICALLY (Cloud Synced)
 // ---------------------------------------------------------------
-async function applySiteSettingsToPage() {
+async function applySiteSettingsToPage(customSettings = null) {
   function applyDOM(settings) {
     if (!settings) return;
+
+    const brandName = settings.brandName || 'Radhey Radhey Funicher';
+    const address = settings.address || 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020';
+    const email = settings.email || 'jangid7090@gmail.com';
+    const cleanPhone = (settings.phone || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+    const cleanWa = (settings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+    const bannerText = settings.bannerText || '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood';
+    const fullWa = '91' + cleanWa;
+
     // 1. Update announcement banner marquee text
-    if (settings.bannerText) {
-      const bannerSpans = document.querySelectorAll('.top-announcement-bar .marquee-content span, .top-announcement-bar span');
-      if (bannerSpans.length > 0) {
-        bannerSpans[0].textContent = settings.bannerText;
+    if (bannerText) {
+      const bannerSpans = document.querySelectorAll('.top-announcement-bar .marquee-content span, .top-announcement-bar span, [data-setting="bannerText"]');
+      bannerSpans.forEach(span => {
+        span.textContent = bannerText;
+      });
+    }
+
+    // 2. Update WhatsApp buttons and links across whole page
+    const waLinks = document.querySelectorAll('a[href*="wa.me"], a.whatsapp-float, a.floating-whatsapp, a.pdp-whatsapp-btn, #modalWaDirectBtn, #whatsappOrderBtn, #chatCustomerBtn');
+    waLinks.forEach(a => {
+      const href = a.getAttribute('href') || '';
+      const match = href.match(/text=([^&]+)/);
+      const textParam = match ? ('?' + match[0]) : '';
+      a.href = `https://wa.me/${fullWa}${textParam}`;
+
+      // If button text includes WhatsApp inquiry label with phone
+      if (a.textContent.includes('Inquire on WhatsApp') || a.classList.contains('pdp-whatsapp-btn')) {
+        a.innerHTML = `<i class="bi bi-whatsapp" style="font-size: 1.15rem; color: #16a34a;"></i> Inquire on WhatsApp (+91 ${cleanWa})`;
       }
-    }
+    });
 
-    // 2. Update WhatsApp buttons and links
-    if (settings.whatsapp) {
-      const cleanWa = settings.whatsapp.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
-      const fullWa = '91' + cleanWa;
-      const waLinks = document.querySelectorAll('a[href*="wa.me"], a.whatsapp-float, a.floating-whatsapp');
-      waLinks.forEach(a => {
-        const href = a.getAttribute('href') || '';
-        const match = href.match(/text=([^&]+)/);
-        const textParam = match ? ('?' + match[0]) : '';
-        a.href = `https://wa.me/${fullWa}${textParam}`;
-      });
-    }
+    document.querySelectorAll('[data-store-whatsapp], [data-setting="whatsapp"]').forEach(el => {
+      if (el.tagName === 'A') {
+        el.href = `https://wa.me/${fullWa}`;
+      } else {
+        el.textContent = `+91 ${cleanWa}`;
+      }
+    });
 
-    // 3. Update telephone links
-    if (settings.phone) {
-      const tenDigits = settings.phone.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
-      const telLinks = document.querySelectorAll('a[href^="tel:"]');
-      telLinks.forEach(a => {
-        a.href = 'tel:+91' + tenDigits;
-        a.innerHTML = `<i class="bi bi-telephone" style="margin-right: 4px; color: inherit;"></i> Call / Support: +91 ${tenDigits}`;
-      });
-    }
+    // 3. Update telephone links and phone text
+    const telLinks = document.querySelectorAll('a[href^="tel:"]');
+    telLinks.forEach(a => {
+      a.href = 'tel:+91' + cleanPhone;
+      const icon = a.querySelector('i');
+      if (icon) {
+        a.innerHTML = `${icon.outerHTML} Call / Support: +91 ${cleanPhone}`;
+      } else if (a.textContent.trim().startsWith('+91') || a.textContent.includes('Call')) {
+        a.textContent = `+91 ${cleanPhone}`;
+      }
+    });
+
+    // Footer contact list items for phone
+    document.querySelectorAll('.footer-contact i.bi-telephone, .footer-contact svg.bi-telephone').forEach(icon => {
+      const span = icon.closest('li')?.querySelector('span') || icon.nextElementSibling;
+      if (span && span.tagName === 'SPAN') {
+        span.textContent = `+91 ${cleanPhone} (10 AM - 8 PM)`;
+      }
+    });
+
+    // Contact page info-card phone
+    document.querySelectorAll('.info-card').forEach(card => {
+      if (card.innerHTML.includes('📞') || card.innerHTML.includes('Direct Call') || card.innerHTML.includes('Helpline')) {
+        const pLink = card.querySelector('p a[href^="tel:"]');
+        if (pLink) {
+          pLink.href = 'tel:+91' + cleanPhone;
+          pLink.textContent = '+91 ' + cleanPhone;
+        }
+      }
+    });
+
+    document.querySelectorAll('[data-store-phone], [data-setting="phone"]').forEach(el => {
+      if (el.tagName === 'A') {
+        el.href = `tel:+91${cleanPhone}`;
+      } else {
+        el.textContent = `+91 ${cleanPhone}`;
+      }
+    });
+
+    // 4. Update Email links and displays
+    const mailLinks = document.querySelectorAll('a[href^="mailto:"]');
+    mailLinks.forEach(a => {
+      a.href = `mailto:${email}`;
+      if (a.textContent.includes('@')) {
+        a.textContent = email;
+      }
+    });
+
+    // Footer contact list items for email
+    document.querySelectorAll('.footer-contact i.bi-envelope, .footer-contact svg.bi-envelope').forEach(icon => {
+      const span = icon.closest('li')?.querySelector('span') || icon.nextElementSibling;
+      if (span && span.tagName === 'SPAN') {
+        span.textContent = email;
+      }
+    });
+
+    // Contact page info-card email
+    document.querySelectorAll('.info-card').forEach(card => {
+      if (card.innerHTML.includes('✉️') || card.innerHTML.includes('Email Support')) {
+        const mailA = card.querySelector('p a[href^="mailto:"]');
+        if (mailA) {
+          mailA.href = `mailto:${email}`;
+          mailA.textContent = email;
+        }
+      }
+    });
+
+    document.querySelectorAll('[data-store-email], [data-setting="email"]').forEach(el => {
+      if (el.tagName === 'A') {
+        el.href = `mailto:${email}`;
+      } else {
+        el.textContent = email;
+      }
+    });
+
+    // 5. Update Address across all elements
+    // a. Footer location item in main store pages
+    document.querySelectorAll('.footer-contact i.bi-geo-alt, .footer-contact svg.bi-geo-alt, .footer-contact .bi-geo-alt-fill').forEach(icon => {
+      const span = icon.closest('li')?.querySelector('span') || icon.nextElementSibling;
+      if (span && span.tagName === 'SPAN') {
+        span.textContent = address;
+      }
+    });
+
+    // b. Aluminium pages footer location
+    document.querySelectorAll('.site-footer .bi-geo-alt-fill, .site-footer .bi-geo-alt').forEach(icon => {
+      const parent = icon.parentElement;
+      if (parent) {
+        const span = parent.querySelector('span');
+        if (span) {
+          span.textContent = address;
+        } else {
+          parent.innerHTML = `<i class="bi bi-geo-alt-fill text-gold"></i> <span>${address}</span>`;
+        }
+      }
+    });
+
+    // c. Contact page workshop address info-card
+    document.querySelectorAll('.info-card').forEach(card => {
+      if (card.innerHTML.includes('📍') || card.innerHTML.includes('Main Workshop') || card.innerHTML.includes('Factory Outlet')) {
+        const p = card.querySelector('p');
+        if (p) {
+          p.textContent = address;
+        }
+      }
+    });
+
+    // d. All elements explicitly marked for address
+    document.querySelectorAll('.store-address, [data-store-address], [data-setting="address"], #storeAddressText, #contactStoreAddress').forEach(el => {
+      el.textContent = address;
+    });
+
+    // 6. Update Store Brand Name
+    document.querySelectorAll('.store-brand-name, [data-store-brand], [data-setting="brandName"]').forEach(el => {
+      el.textContent = brandName;
+    });
+
+    // Footer copyright brand name
+    document.querySelectorAll('.footer-bottom, footer .footer-bottom, .site-footer p').forEach(el => {
+      if (el.innerHTML.includes('©') || el.innerHTML.includes('&copy;')) {
+        const strong = el.querySelector('strong');
+        if (strong) {
+          strong.textContent = brandName;
+        }
+      }
+    });
+  }
+
+  if (customSettings) {
+    applyDOM(customSettings);
+    return;
   }
 
   try {
@@ -1088,6 +1257,8 @@ async function applySiteSettingsToPage() {
       try {
         applyDOM(JSON.parse(local));
       } catch (e) { }
+    } else if (typeof DEFAULT_SITE_SETTINGS !== 'undefined') {
+      applyDOM(DEFAULT_SITE_SETTINGS);
     }
 
     // 2. Always fetch fresh settings from Firestore Cloud
@@ -1100,6 +1271,22 @@ async function applySiteSettingsToPage() {
     console.warn('applySiteSettingsToPage error:', e);
   }
 }
+
+// Real-time synchronization listeners across tabs & admin saves
+window.addEventListener('storage', (e) => {
+  if (e.key === 'radha_store_settings_v1') {
+    try {
+      const parsed = JSON.parse(e.newValue);
+      if (parsed) applySiteSettingsToPage(parsed);
+    } catch (err) {}
+  }
+});
+
+window.addEventListener('radha_settings_updated', (e) => {
+  if (e.detail) {
+    applySiteSettingsToPage(e.detail);
+  }
+});
 
 // ---------------------------------------------------------------
 // CLIENT AUTHENTICATION & DATA STORAGE (Firebase Cloud + Local)

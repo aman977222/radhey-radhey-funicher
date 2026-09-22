@@ -439,10 +439,13 @@
         await placeOrderInDB(newOrder);
 
         // Setup WhatsApp update URL
-        const waText = `Namaste Radhey Radhey Furniture, I have placed order #${orderId} on your website for ${cart.map(c => c.title).join(', ')}. Total: ${formatPrice(total)} (${paymentMode}). Customer: ${newOrder.customerName}, Phone: ${newOrder.phone}.`;
+        const storeSettings = (typeof getActiveStoreSettings === 'function') ? getActiveStoreSettings() : { whatsapp: '9772225296', brandName: 'Radhey Radhey Funicher' };
+        const cleanWa = (storeSettings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+        const brandName = storeSettings.brandName || 'Radhey Radhey Funicher';
+        const waText = `Namaste ${brandName}, I have placed order #${orderId} on your website for ${cart.map(c => c.title).join(', ')}. Total: ${formatPrice(total)} (${paymentMode}). Customer: ${newOrder.customerName}, Phone: ${newOrder.phone}.`;
         const waBtn = document.getElementById('whatsappOrderBtn');
         if (waBtn) {
-          waBtn.href = `https://wa.me/+919772225296?text=${encodeURIComponent(waText)}`;
+          waBtn.href = `https://wa.me/91${cleanWa}?text=${encodeURIComponent(waText)}`;
         }
 
         // Clear Cart

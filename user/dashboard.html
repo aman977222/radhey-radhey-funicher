@@ -317,6 +317,10 @@
 
       noOrders.style.display = 'none';
       container.style.display = 'block';
+      const activeSettings = (typeof getActiveStoreSettings === 'function') ? getActiveStoreSettings() : { whatsapp: '9772225296', brandName: 'Radhey Radhey Funicher' };
+      const cleanWa = (activeSettings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+      const brandName = activeSettings.brandName || 'Radhey Radhey Funicher';
+
       container.innerHTML = orders.map(ord => {
         const orderId = ord.orderId || ord._id;
         const itemsList = Array.isArray(ord.items) ? ord.items : [];
@@ -371,7 +375,7 @@
             <div>
               <strong>📍 Delivery Address:</strong> ${ord.address || 'Address registered on file'}
             </div>
-            <a href="https://wa.me/+919772225296?text=Hello%20Radhey%20Radhey%20Furniture,%20please%20give%20me%20update%20on%20Order%20%23${orderId}" style="color: green; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; background: honeydew; padding: 6px 12px; border-radius: 6px; border: 1px solid lightgreen;">
+            <a href="https://wa.me/91${cleanWa}?text=Hello%20${encodeURIComponent(brandName)},%20please%20give%20me%20update%20on%20Order%20%23${orderId}" style="color: green; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; background: honeydew; padding: 6px 12px; border-radius: 6px; border: 1px solid lightgreen;">
               💬 WhatsApp Tracking Updates →
             </a>
           </div>

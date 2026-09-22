@@ -1476,12 +1476,12 @@ async function fbSyncAllToCloud() {
 
 // 7. STORE & WEBSITE CONFIGURATIONS (Firebase Cloud + Local)
 const DEFAULT_SITE_SETTINGS = {
-  brandName: 'Radhey Radhey Furniture & Handicraft',
+  brandName: 'Radhey Radhey Funicher',
   phone: '9772225296',
   whatsapp: '9772225296',
   email: 'jangid7090@gmail.com',
   bannerText: '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood',
-  address: 'Main Furniture Market, Workshop Road, Rajasthan, India',
+  address: 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020',
   couponCode: 'RADHEY10',
   themeColor: 'Red & Black Theme'
 };
@@ -1527,6 +1527,11 @@ async function fbSaveSiteSettings(settingsData) {
   } catch (e) {
     console.warn('Local settings save error:', e);
   }
+
+  // Broadcast settings update to current window
+  try {
+    window.dispatchEvent(new CustomEvent('radha_settings_updated', { detail: merged }));
+  } catch (e) {}
 
   // 2. Cloud Firestore sync
   try {

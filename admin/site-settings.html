@@ -72,7 +72,7 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
               <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: black;">Store Brand Name</label>
-              <input type="text" id="cfgName" required style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem;">
+              <input type="text" id="cfgName" required placeholder="Radhey Radhey Funicher" style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem;">
             </div>
 
             <div>
@@ -95,13 +95,13 @@
 
           <div style="margin-bottom: 20px;">
             <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: black;">Top Announcement Bar Marquee Text</label>
-            <input type="text" id="cfgBanner" required style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem;">
+            <input type="text" id="cfgBanner" required placeholder="🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood" style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem;">
             <small style="color: gray; font-size: 0.78rem; margin-top: 4px; display: block;">Yeh text website ke sabse upar red banner bar me live display hoga.</small>
           </div>
 
           <div style="margin-bottom: 20px;">
             <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: black;">Workshop / Factory / Showroom Address</label>
-            <textarea id="cfgAddress" rows="3" required style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem; font-family: inherit; resize: vertical;"></textarea>
+            <textarea id="cfgAddress" rows="3" required placeholder="Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020" style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem; font-family: inherit; resize: vertical;"></textarea>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
@@ -140,12 +140,12 @@
           const cleanPhone = (settings.phone || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
           const cleanWa = (settings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
 
-          if (document.getElementById('cfgName')) document.getElementById('cfgName').value = settings.brandName || '';
+          if (document.getElementById('cfgName')) document.getElementById('cfgName').value = settings.brandName || 'Radhey Radhey Funicher';
           if (document.getElementById('cfgPhone')) document.getElementById('cfgPhone').value = cleanPhone;
           if (document.getElementById('cfgWhatsApp')) document.getElementById('cfgWhatsApp').value = cleanWa;
-          if (document.getElementById('cfgEmail')) document.getElementById('cfgEmail').value = settings.email || '';
-          if (document.getElementById('cfgBanner')) document.getElementById('cfgBanner').value = settings.bannerText || '';
-          if (document.getElementById('cfgAddress')) document.getElementById('cfgAddress').value = settings.address || '';
+          if (document.getElementById('cfgEmail')) document.getElementById('cfgEmail').value = settings.email || 'jangid7090@gmail.com';
+          if (document.getElementById('cfgBanner')) document.getElementById('cfgBanner').value = settings.bannerText || '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood';
+          if (document.getElementById('cfgAddress')) document.getElementById('cfgAddress').value = settings.address || 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020';
           if (document.getElementById('cfgCoupon')) document.getElementById('cfgCoupon').value = settings.couponCode || 'RADHEY10';
 
           const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');

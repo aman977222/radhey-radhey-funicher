@@ -531,7 +531,10 @@
     function renderDetails() {
       const p = currentProduct;
       const isFab = ['windows', 'doors', 'gates', 'mirrors', 'partitions', 'railings', 'shower', 'aluminium', 'steel-work'].includes(p.category);
-      document.title = `${p.title} — Radhey Radhey Furniture`;
+      const activeSettings = (typeof getActiveStoreSettings === 'function') ? getActiveStoreSettings() : { whatsapp: '9772225296', brandName: 'Radhey Radhey Funicher' };
+      const cleanWa = (activeSettings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+      const brandName = activeSettings.brandName || 'Radhey Radhey Funicher';
+      document.title = `${p.title} — ${brandName}`;
 
       const loggedUser = getLoggedInCustomer();
       const isAdminOrSuper = loggedUser && (loggedUser.role === 'admin' || loggedUser.role === 'superadmin');
@@ -684,9 +687,9 @@
               </div>
 
               <!-- WhatsApp Direct Inquiry -->
-              <a href="https://wa.me/919772225296?text=Hello%20Radhey%20Radhey%20Workshop,%20I%20am%20interested%20in:%20${encodeURIComponent(p.title)}%20(${formatPrice(p.price)})" class="pdp-whatsapp-btn" target="_blank" rel="noopener">
+              <a href="https://wa.me/91${cleanWa}?text=Hello%20${encodeURIComponent(brandName)}%20Workshop,%20I%20am%20interested%20in:%20${encodeURIComponent(p.title)}%20(${formatPrice(p.price)})" class="pdp-whatsapp-btn" target="_blank" rel="noopener">
                 <i class="bi bi-whatsapp" style="font-size: 1.15rem; color: #16a34a;"></i>
-                Inquire on WhatsApp (+91 9772225296)
+                Inquire on WhatsApp (+91 ${cleanWa})
               </a>
             `}
 
