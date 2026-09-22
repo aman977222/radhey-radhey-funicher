@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Collections — Radhey Radhey Furniture & Handicrafts</title>
+  <meta name="description"
+    content="Explore handcrafted furniture by room category: Living Room, Bedroom, Dining Sets, Pooja Mandirs, and Traditional Indian Handicrafts.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    .category-tabs {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 20px 0;
+      scrollbar-width: none;
+    }
+
+    .category-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-tab-btn {
+      padding: 10px 22px;
+      border-radius: var(--radius-full);
+      background: white;
+      border: 1px solid var(--border-light);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: gray;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .cat-tab-btn.active,
+    .cat-tab-btn:hover {
+      background: var(--primary-red);
+      color: white;
+      border-color: var(--primary-red);
+      box-shadow: var(--shadow-red);
+    }
+
+    .category-hero {
+      background: var(--walnut-darker);
+      color: var(--cream-light);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      margin: 30px 0;
+      border: 1px solid var(--border-dark);
+      border-left: 6px solid var(--accent-gold);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= TOP ANNOUNCEMENT BAR ================= -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span>🔴 Radhey Radhey Furniture: 100% Solid Sheesham & Teak Wood | Custom Sizes Available</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+919772225296">
+          <i class="bi bi-telephone" style="margin-right: 4px; color: white;"></i>
+          Call / Support: +91 9772225296
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="shop.html" class="action-btn">
+          <i class="bi bi-bag"></i>
+          <span>Catalog</span>
+        </a>
+        <a href="user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+        <a href="cart.html" class="action-btn">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+        <a href="user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      <button class="cat-tab-btn active" data-cat="all" onclick="selectCat('all', this)">All Categories</button>
+      <button class="cat-tab-btn" data-cat="living" onclick="selectCat('living', this)">Living Room</button>
+      <button class="cat-tab-btn" data-cat="bedroom" onclick="selectCat('bedroom', this)">Bedroom Furniture</button>
+      <button class="cat-tab-btn" data-cat="dining" onclick="selectCat('dining', this)">Dining Sets</button>
+      <button class="cat-tab-btn" data-cat="mandir" onclick="selectCat('mandir', this)">Pooja Mandir</button>
+      <button class="cat-tab-btn" data-cat="handicraft" onclick="selectCat('handicraft', this)">Indian
+        Handicrafts</button>
+    </div>
+
+    <!-- Category Banner Description -->
+    <div class="category-hero" id="catHeroBox">
+      <span
+        style="color: var(--primary-red); font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+        ROYAL HERITAGE COLLECTION
+      </span>
+      <h1 id="catTitle" style="font-family: var(--font-serif); font-size: 2.2rem; margin: 6px 0 10px;">
+        Handcrafted Furniture & Crafts
+      </h1>
+      <p id="catDesc" style="color: gray; max-width: 750px; font-size: 0.95rem; line-height: 1.6;">
+        Explore Radhey Radhey Furniture's exquisite range of pure solid Sheesham and Teak wood items created with
+        traditional Indian heritage.
+      </p>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="product-grid" id="catProductsGrid" style="margin-bottom: 60px;">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+      <div>100% Solid Seasoned Wood.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    const catDetails = {
+      all: {
+        title: "Complete Furniture & Handicrafts Collection",
+        desc: "Browse our entire curated range of pure Sheesham wood sofas, Teak beds, sacred pooja mandirs, and traditional Indian handicrafts."
+      },
+      living: {
+        title: "Living Room Luxury Furniture",
+        desc: "Elevate your drawing room with hand-carved Maharaja sofa sets, ergonomic rocking chairs, center tables, and TV entertainment consoles."
+      },
+      bedroom: {
+        title: "Royal Bedroom Suite & Storage",
+        desc: "Experience peaceful sleep with solid Teak & Sheesham King/Queen beds with hydraulic storage, bedside tables, and spacious wardrobes."
+      },
+      dining: {
+        title: "Handcrafted Solid Wood Dining Sets",
+        desc: "Bring family together around heirloom quality 4-seater and 6-seater solid wood dining tables paired with cushioned ergonomic chairs."
+      },
+      mandir: {
+        title: "Sacred Teak & Sheesham Pooja Mandirs",
+        desc: "Sanctify your home with hand-carved wooden temples featuring traditional domes, brass bells, pull-out bhog trays, and diya drawers."
+      },
+      handicraft: {
+        title: "Authentic Traditional Indian Handicrafts",
+        desc: "Enrich your home decor with Rajasthani wooden jharokha mirrors, brass artifacts, antique gramophones, and carved wall panels."
+      }
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeCat = urlParams.get('cat') || 'all';
+
+    function selectCat(cat, btn) {
+      activeCat = cat;
+      document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const info = catDetails[cat] || catDetails.all;
+      document.getElementById('catTitle').textContent = info.title;
+      document.getElementById('catDesc').textContent = info.desc;
+
+      const filtered = getProductsByCategory(cat);
+      const grid = document.getElementById('catProductsGrid');
+      grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const targetBtn = document.querySelector(`.cat-tab-btn[data-cat="${activeCat}"]`) || document.querySelector('.cat-tab-btn[data-cat="all"]');
+      selectCat(activeCat, targetBtn);
+
+      if (typeof getAllProducts === 'function') {
+        getAllProducts().then(() => {
+          selectCat(activeCat, targetBtn);
+        }).catch(() => { });
+      }
+
+      window.addEventListener('radha_products_synced', () => {
+        selectCat(activeCat, targetBtn);
+      });
+    });
+  </script>
+</body>
+
+</html>

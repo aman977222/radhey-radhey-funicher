@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Login — Radhey Radhey Furniture & Handicrafts</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    body {
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: white;
+    }
+    .admin-login-box {
+      background: black;
+      border: 1px solid gray;
+      border-top: 4px solid red;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: gray;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      background: black;
+      border: 1px solid gray;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.95rem;
+    }
+    .form-group input:focus {
+      border-color: red;
+      box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-login-box">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="width: 50px; height: 50px; background: red; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-family: serif; font-size: 1.5rem; font-weight: bold; margin-bottom: 12px;">
+        RR
+      </div>
+      <h2 style="font-family: var(--font-serif); font-size: 1.5rem; font-weight: 800;">Admin Control Center</h2>
+      <p style="color: gray; font-size: 0.85rem;">Radhey Radhey Furniture & Handicrafts</p>
+    </div>
+
+    <form onsubmit="handleAdminLogin(event)">
+      <div id="adminLockoutBox" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(255, 0, 0, 0.15); border: 2px solid red; border-radius: 10px; text-align: center;">
+        <div style="font-size: 1.5rem; margin-bottom: 4px;">🛑</div>
+        <div style="color: tomato; font-weight: bold; font-size: 0.95rem; margin-bottom: 6px;">Login Temporarily Locked</div>
+        <p style="color: lightgray; font-size: 0.82rem; margin-bottom: 10px;">
+          3 baar galat password dalne par <strong>2 minute ka break</strong> lagaya gaya hai.
+        </p>
+        <div style="display: inline-block; background: red; color: white; padding: 6px 16px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 1.2rem;" id="adminLockoutTimer">
+          ⏱️ 02:00
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Admin Username / Email / Mobile</label>
+        <input type="text" id="adminUser" placeholder="Enter admin email or mobile" required autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label>Admin Password</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="adminPass" placeholder="Enter admin password" required autocomplete="current-password" style="width: 100%; padding-right: 42px;">
+          <button type="button" onclick="togglePasswordVisibility('adminPass', this)" style="position: absolute; right: 8px; background: none; border: none; cursor: pointer; color: gray; font-size: 1.15rem; padding: 4px;" title="Show/Hide Password">👁️</button>
+        </div>
+        <div id="adminAttemptsWarning" style="display: none; font-size: 0.8rem; color: tomato; margin-top: 6px;"></div>
+      </div>
+
+      <button type="submit" id="adminLoginBtn" class="btn btn-red btn-block" style="padding: 14px; font-size: 1rem;">
+        Secure Admin Login →
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 25px; display: flex; flex-direction: column; gap: 10px;">
+      <a href="../login.html" style="color: red; font-size: 0.9rem; font-weight: 700;">
+        🔑 Use Unified Login Page (login.html) →
+      </a>
+      <a href="../index.html" style="color: gray; font-size: 0.85rem;">← Go to Customer Website</a>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    let adminLockInterval = null;
+
+    function formatTime(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function checkAdminLockout() {
+      const lock = checkLoginLockout();
+      const box = document.getElementById('adminLockoutBox');
+      const timer = document.getElementById('adminLockoutTimer');
+      const btn = document.getElementById('adminLoginBtn');
+      const userInput = document.getElementById('adminUser');
+      const passInput = document.getElementById('adminPass');
+      const warn = document.getElementById('adminAttemptsWarning');
+
+      if (lock.isLocked) {
+        if (warn) warn.style.display = 'none';
+        box.style.display = 'block';
+        userInput.disabled = true;
+        passInput.disabled = true;
+        btn.disabled = true;
+
+        if (adminLockInterval) clearInterval(adminLockInterval);
+        timer.textContent = '⏱️ ' + formatTime(lock.remainingSec);
+        btn.innerHTML = '🔒 Locked (' + formatTime(lock.remainingSec) + ')';
+
+        adminLockInterval = setInterval(() => {
+          const cur = checkLoginLockout();
+          if (cur.isLocked) {
+            timer.textContent = '⏱️ ' + formatTime(cur.remainingSec);
+            btn.innerHTML = '🔒 Locked (' + formatTime(cur.remainingSec) + ')';
+          } else {
+            clearInterval(adminLockInterval);
+            adminLockInterval = null;
+            box.style.display = 'none';
+            userInput.disabled = false;
+            passInput.disabled = false;
+            btn.disabled = false;
+            btn.innerHTML = 'Secure Admin Login →';
+          }
+        }, 1000);
+      } else {
+        if (adminLockInterval) {
+          clearInterval(adminLockInterval);
+          adminLockInterval = null;
+        }
+        box.style.display = 'none';
+        userInput.disabled = false;
+        passInput.disabled = false;
+        btn.disabled = false;
+        btn.innerHTML = 'Secure Admin Login →';
+
+        if (lock.failCount > 0 && warn) {
+          warn.style.display = 'block';
+          warn.innerHTML = `⚠️ 3 baar galat password par 2 min break lagega. (Bache attempts: <strong>${lock.attemptsLeft}</strong>)`;
+        }
+      }
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const lock = checkLoginLockout();
+      if (lock.isLocked) {
+        alert(`Login 2 minute ke liye locked hai! Kripya ${formatTime(lock.remainingSec)} wait karein.`);
+        checkAdminLockout();
+        return;
+      }
+
+      const username = document.getElementById('adminUser').value.trim();
+      const password = document.getElementById('adminPass').value;
+      const submitBtn = document.getElementById('adminLoginBtn');
+      const warn = document.getElementById('adminAttemptsWarning');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Logging in...';
+
+      const res = await adminLoginWithDB(username, password);
+      if (res && res.success) {
+        clearLoginFailureLockout();
+        if (warn) warn.style.display = 'none';
+        submitBtn.innerHTML = 'Login Successful ✓';
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 500);
+      } else {
+        const fail = handleLoginFailure();
+        if (fail.isLocked) {
+          alert('🛑 3 baar galat password enter karne par 2 minute ka break lagaya gaya hai!');
+          checkAdminLockout();
+        } else {
+          alert(res.message || 'Admin login failed! Please check credentials.');
+          if (warn) {
+            warn.style.display = 'block';
+            warn.innerHTML = `⚠️ 3 baar galat password par 2 min break lagega. (Bache attempts: <strong>${fail.attemptsLeft}</strong>)`;
+          }
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Secure Admin Login →';
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAdminLockout();
+    });
+  </script>
+</body>
+</html>

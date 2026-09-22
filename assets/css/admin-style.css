@@ -1,0 +1,398 @@
+/* ================================================================
+   RADHEY RADHEY FURNITURE & HANDICRAFT — ADMIN DASHBOARD STYLES
+   Theme: 🔴⚫ Red & Black Administrative Control Suite
+   ================================================================ */
+
+:root {
+  --admin-sidebar-bg: black;
+  --admin-sidebar-w: 260px;
+  --admin-header-h: 68px;
+  --admin-primary: red;
+  --admin-accent: red;
+  --admin-bg: whitesmoke;
+  --admin-card-bg: white;
+  --admin-text-main: black;
+  --admin-text-dim: gray;
+  --admin-border: lightgray;
+  --admin-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+body.admin-body {
+  margin: 0;
+  padding: 0;
+  background: var(--admin-bg);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--admin-text-main);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: var(--admin-sidebar-w);
+  background: var(--admin-sidebar-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  border-right: 2px solid var(--admin-primary);
+}
+
+.admin-brand {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-brand .badge {
+  background: var(--admin-primary);
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+.admin-nav {
+  padding: 20px 14px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: gray;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+  background: rgba(255, 0, 0, 0.15);
+  color: white;
+}
+
+.admin-nav a.active {
+  border-left: 3px solid var(--admin-primary);
+}
+
+.admin-nav .nav-heading {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: gray;
+  padding: 16px 14px 8px;
+  font-weight: 800;
+}
+
+/* Main Area */
+.admin-main {
+  margin-left: var(--admin-sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-header {
+  height: var(--admin-header-h);
+  background: white;
+  border-bottom: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.admin-content {
+  padding: 30px;
+  flex: 1;
+}
+
+/* Metric Cards */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.metric-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255, 0, 0, 0.1);
+  color: var(--admin-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: black;
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 0.82rem;
+  color: var(--admin-text-dim);
+  font-weight: 600;
+}
+
+/* Tables */
+.admin-table-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+}
+
+.admin-table-header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--admin-border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Responsive Table Container with Touch & Mouse Scroll */
+.admin-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: lightgray whitesmoke;
+}
+
+.admin-table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.admin-table-responsive::-webkit-scrollbar-track {
+  background: whitesmoke;
+  border-radius: 4px;
+}
+
+.admin-table-responsive::-webkit-scrollbar-thumb {
+  background: lightgray;
+  border-radius: 4px;
+}
+
+.admin-table-responsive::-webkit-scrollbar-thumb:hover {
+  background: gray;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 880px; /* Allows smooth horizontal swipe on mobile so no column or action button gets cut off */
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background: whitesmoke;
+  padding: 14px 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: dimgray;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.admin-table tr:hover {
+  background: aliceblue;
+}
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-status.confirmed { background: honeydew; color: green; }
+.badge-status.crafting { background: lightyellow; color: brown; }
+.badge-status.dispatched { background: lavender; color: indigo; }
+.badge-status.delivered { background: lavenderblush; color: purple; }
+
+.action-btn-sm {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--admin-border);
+  background: white;
+  color: darkslategray;
+}
+
+.action-btn-sm:hover {
+  background: whitesmoke;
+  border-color: gray;
+}
+
+.action-btn-sm.delete:hover {
+  background: mistyrose;
+  color: red;
+  border-color: red;
+}
+
+/* Modal */
+.admin-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  padding: 30px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-top: 4px solid var(--admin-primary);
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 25px rgba(0, 0, 0, 0.4);
+    z-index: 1001;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  .admin-main {
+    margin-left: 0;
+  }
+  .admin-header {
+    padding: 10px 14px;
+    height: auto;
+    min-height: var(--admin-header-h);
+    gap: 10px;
+  }
+  .admin-content {
+    padding: 14px 10px;
+  }
+  .mobile-table-scroll-hint {
+    display: flex !important;
+  }
+}
+
+/* Mobile Horizontal Scroll Hint Banner */
+.mobile-table-scroll-hint {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background: aliceblue;
+  border-bottom: 1px solid lightblue;
+  color: darkblue;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 8px;
+}
+
+.mobile-table-scroll-hint .scroll-arrow-badge {
+  background: royalblue;
+  color: white;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: bounceHorizontal 1.6s infinite;
+}
+
+@keyframes bounceHorizontal {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+.admin-mobile-menu-btn {
+  display: none;
+  background: whitesmoke;
+  border: 1px solid var(--admin-border);
+  font-size: 1.25rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: black;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .admin-mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+}
+.sidebar-overlay.active {
+  display: block;
+}
+

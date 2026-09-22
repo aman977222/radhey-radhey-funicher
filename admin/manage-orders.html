@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Orders & Shipments — Radhey Radhey Furniture Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    /* Specific styles for Ordered Items column and preview modal */
+    .order-items-col {
+      min-width: 270px;
+      max-width: 340px;
+      vertical-align: top !important;
+    }
+
+    .order-item-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 10px;
+      background: whitesmoke;
+      border: 1px solid lightgray;
+      border-radius: 9px;
+      margin-bottom: 8px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .order-item-card:hover {
+      background: whitesmoke;
+      border-color: lightgray;
+    }
+
+    .order-item-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .order-item-img-wrap {
+      position: relative;
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid lightgray;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      cursor: pointer;
+    }
+
+    .order-item-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .order-item-img-wrap:hover img {
+      transform: scale(1.08);
+    }
+
+    .order-item-qty-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: black;
+      color: white;
+      font-size: 0.66rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 10px;
+      border: 1px solid white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .order-item-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .order-item-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: black;
+      text-decoration: none;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .order-item-title:hover {
+      color: red;
+      text-decoration: underline;
+    }
+
+    .order-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .order-item-price {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: darkred;
+    }
+
+    .order-item-finish {
+      font-size: 0.72rem;
+      background: lightgray;
+      color: darkslategray;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Filters and summary bar */
+    .orders-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 16px 20px;
+      background: white;
+      border-bottom: 1px solid lightgray;
+    }
+
+    .orders-search-box {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+      max-width: 380px;
+    }
+
+    .orders-search-box input {
+      width: 100%;
+      padding: 9px 12px 9px 34px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .orders-search-box input:focus {
+      border-color: red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    .orders-search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: gray;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .orders-filters-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .orders-status-filter {
+      padding: 9px 14px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: darkslategray;
+      background: white;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .orders-status-filter:focus {
+      border-color: red;
+    }
+
+    /* Order Status Badges */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .status-pill.confirmed { background: aliceblue; color: dodgerblue; }
+    .status-pill.crafting { background: bisque; color: brown; }
+    .status-pill.dispatched { background: lavender; color: purple; }
+    .status-pill.delivered { background: honeydew; color: forestgreen; }
+    .status-pill.cancelled { background: mistyrose; color: darkred; }
+
+    /* Image Lightbox Modal */
+    .image-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .image-modal-content {
+      background: white;
+      border-radius: 14px;
+      max-width: 540px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .image-modal-header {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid lightgray;
+      background: whitesmoke;
+    }
+
+    .image-modal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: black;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 12px;
+    }
+
+    .image-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      line-height: 1;
+      color: gray;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .image-modal-close:hover {
+      color: black;
+    }
+
+    .image-modal-body {
+      padding: 16px;
+      text-align: center;
+      background: black;
+    }
+
+    .image-modal-body img {
+      max-width: 100%;
+      max-height: 65vh;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif; color: white;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block; color: black;">RADHEY RADHEY</strong>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" style="color: darkred; font-weight: 700;">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html" class="active">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only" style="display: none;">Super Admin Controls</div>
+      <a href="manage-admins.html" class="super-admin-only" style="display: none; color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: black;">📦 Orders & Shipment Lifecycle</h2>
+        <span id="ordersCountBadge" style="background: mistyrose; color: darkred; font-size: 0.78rem; font-weight: 800; padding: 3px 9px; border-radius: 999px;">0 Orders</span>
+      </div>
+      <button onclick="renderAdminOrders()" class="action-btn-sm" style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: black;">
+        🔄 Refresh List
+      </button>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-table-card">
+        
+        <!-- Toolbar: Search & Filter -->
+        <div class="orders-toolbar">
+          <div class="orders-search-box">
+            <span class="orders-search-icon">🔍</span>
+            <input type="text" id="adminOrderSearchInput" placeholder="Search by Order ID, Customer, Phone, or Product..." oninput="handleOrderFilter()">
+          </div>
+
+          <div class="orders-filters-group">
+            <label style="font-size: 0.82rem; font-weight: 700; color: gray;">Filter Status:</label>
+            <select id="adminOrderStatusFilter" class="orders-status-filter" onchange="handleOrderFilter()">
+              <option value="all">All Statuses</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Crafting in Workshop">Crafting in Workshop</option>
+              <option value="Packed & Dispatched">Packed & Dispatched</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Indicator Badge -->
+        <div class="mobile-table-scroll-hint">
+          <span>📱 <strong>Mobile View:</strong> Order items, customer address aur update actions ke liye scroll karein</span>
+          <span class="scroll-arrow-badge">Scroll Horizontally ➔</span>
+        </div>
+
+        <div class="admin-table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 130px;">Order ID & Date</th>
+                <th style="min-width: 170px;">Customer & Contact</th>
+                <th style="min-width: 180px;">Delivery Address</th>
+                <th style="min-width: 280px;">Ordered Items (Product Image & Name)</th>
+                <th style="min-width: 120px;">Total Amount</th>
+                <th style="min-width: 130px;">Status</th>
+                <th style="min-width: 170px;">Update Status</th>
+                <th style="min-width: 110px;">WhatsApp</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrdersTableBody">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Image Lightbox Modal -->
+  <div id="productImageModal" class="image-modal-overlay" onclick="closeImageModal(event)">
+    <div class="image-modal-content" onclick="event.stopPropagation()">
+      <div class="image-modal-header">
+        <div class="image-modal-title" id="imageModalTitle">Product Preview</div>
+        <button class="image-modal-close" onclick="closeImageModal()">&times;</button>
+      </div>
+      <div class="image-modal-body">
+        <img id="imageModalImg" src="" alt="Product Full Image">
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // Strict URL Route Guard: Redirect immediately if unauthorized
+    const currentAdmin = enforceAdminAuth();
+
+    let allFetchedOrders = [];
+
+    // Helper to format image paths properly relative to admin/ folder
+    function formatAdminImgUrl(src) {
+      if (!src) return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80';
+      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:') || src.startsWith('../') || src.startsWith('/')) {
+        return src;
+      }
+      return '../' + src;
+    }
+
+    // Lightbox modal controls
+    function openImageModal(imgSrc, title) {
+      const modal = document.getElementById('productImageModal');
+      const modalImg = document.getElementById('imageModalImg');
+      const modalTitle = document.getElementById('imageModalTitle');
+      modalImg.src = imgSrc;
+      modalTitle.textContent = title || 'Product Image Preview';
+      modal.style.display = 'flex';
+    }
+
+    function closeImageModal(e) {
+      if (!e || e.target === document.getElementById('productImageModal') || e.target.classList.contains('image-modal-close')) {
+        document.getElementById('productImageModal').style.display = 'none';
+      }
+    }
+
+    function openImageModalFromData(el) {
+      const imgSrc = decodeURIComponent(el.getAttribute('data-img') || '');
+      const title = decodeURIComponent(el.getAttribute('data-title') || '');
+      openImageModal(imgSrc, title);
+    }
+
+    // Map status class for badge color
+    function getStatusClass(status) {
+      const s = (status || '').toLowerCase();
+      if (s.includes('crafting')) return 'crafting';
+      if (s.includes('dispatched')) return 'dispatched';
+      if (s.includes('delivered')) return 'delivered';
+      if (s.includes('cancelled')) return 'cancelled';
+      return 'confirmed';
+    }
+
+    async function renderAdminOrders() {
+      const tbody = document.getElementById('adminOrdersTableBody');
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: gray;">⏳ Fetching latest orders from database...</td></tr>`;
+
+      try {
+        const raw = await fetchAdminOrdersFromDB();
+        allFetchedOrders = (raw || []).filter(o => o.orderId !== 'RF-84920' && o.orderId !== 'RF-84918');
+        document.getElementById('ordersCountBadge').textContent = `${allFetchedOrders.length} Order${allFetchedOrders.length === 1 ? '' : 's'}`;
+        handleOrderFilter();
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: red;">Error loading orders. Please check console or refresh.</td></tr>`;
+      }
+    }
+
+    function handleOrderFilter() {
+      const search = (document.getElementById('adminOrderSearchInput').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('adminOrderStatusFilter').value;
+      const tbody = document.getElementById('adminOrdersTableBody');
+
+      let filtered = allFetchedOrders || [];
+
+      // Filter by status
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(ord => (ord.status || 'Confirmed') === statusFilter);
+      }
+
+      // Filter by search query
+      if (search) {
+        filtered = filtered.filter(ord => {
+          const idMatch = (ord.orderId || ord._id || '').toLowerCase().includes(search);
+          const nameMatch = (ord.customerName || '').toLowerCase().includes(search);
+          const phoneMatch = (ord.phone || '').toLowerCase().includes(search);
+          const productMatch = Array.isArray(ord.items) && ord.items.some(it => (it.title || '').toLowerCase().includes(search));
+          return idMatch || nameMatch || phoneMatch || productMatch;
+        });
+      }
+
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: gray;">No orders found matching your search.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(ord => {
+        const id = ord.orderId || ord._id;
+        const itemsList = Array.isArray(ord.items) ? ord.items : [];
+        const statusClass = getStatusClass(ord.status);
+
+        // Render ordered items with rich product images
+        const itemsHTML = itemsList.length > 0 ? itemsList.map(it => {
+          // Resolve image
+          let imgSrc = it.image;
+          if (!imgSrc && typeof PRODUCTS_DATA !== 'undefined') {
+            const matched = PRODUCTS_DATA.find(p => p.id === it.id);
+            if (matched) imgSrc = matched.image;
+          }
+          imgSrc = formatAdminImgUrl(imgSrc);
+
+          const qty = it.quantity || 1;
+          const unitPrice = it.price ? formatINR(it.price) : '';
+          const finishBadge = it.finish ? `<span class="order-item-finish">🎨 ${it.finish}</span>` : '';
+          const prodLink = it.id ? `../product-details.html?id=${it.id}` : '#';
+          const encodedImg = encodeURIComponent(imgSrc);
+          const encodedTitle = encodeURIComponent(it.title || 'Handcrafted Furniture');
+
+          return `
+            <div class="order-item-card">
+              <div class="order-item-img-wrap" data-img="${encodedImg}" data-title="${encodedTitle}" onclick="openImageModalFromData(this)" title="Click to view full photo">
+                <img src="${imgSrc}" alt="${it.title || 'Product Image'}" onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80'">
+                <span class="order-item-qty-badge">x${qty}</span>
+              </div>
+              <div class="order-item-details">
+                <a href="${prodLink}" class="order-item-title" title="${it.title || 'View Product Live'}">
+                  ${it.title || 'Solid Sheesham Wood Furniture'}
+                </a>
+                <div class="order-item-meta">
+                  ${unitPrice ? `<span class="order-item-price">${unitPrice}</span>` : ''}
+                  ${finishBadge}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('') : `<span style="color: gray; font-size: 0.8rem;">No item details</span>`;
+
+        return `
+          <tr>
+            <td style="vertical-align: top;">
+              <strong style="color: red; font-size: 0.95rem; font-family: monospace;">#${id}</strong>
+              <div style="font-size: 0.76rem; color: gray; margin-top: 4px;">📅 ${ord.date || new Date().toLocaleDateString('en-IN')}</div>
+            </td>
+
+            <td style="vertical-align: top;">
+              <strong style="color: black; font-size: 0.92rem;">${ord.customerName || 'Customer'}</strong>
+              <div style="font-size: 0.8rem; color: slategray; margin-top: 2px;">📞 ${ord.phone || 'N/A'}</div>
+              <div style="font-size: 0.74rem; color: green; font-weight: 700; margin-top: 3px;">💳 ${ord.paymentMode || 'Cash on Delivery (COD)'}</div>
+            </td>
+
+            <td style="vertical-align: top; max-width: 220px; font-size: 0.82rem; color: slategray; line-height: 1.35;">
+              ${ord.address || 'Address registered on file'}
+            </td>
+
+            <td class="order-items-col">
+              ${itemsHTML}
+            </td>
+
+            <td style="vertical-align: top;">
+              <strong style="font-size: 1rem; color: black;">${formatINR(ord.totalAmount)}</strong>
+            </td>
+
+            <td style="vertical-align: top;">
+              <span class="status-pill ${statusClass}">● ${ord.status || 'Confirmed'}</span>
+            </td>
+
+            <td style="vertical-align: top;">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <select id="statusSelect_${id}" style="padding: 7px 8px; border-radius: 7px; border: 1px solid lightgray; font-size: 0.82rem; font-weight: 600; background: white; cursor: pointer; flex: 1;">
+                  <option value="Confirmed" ${(ord.status || '') === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                  <option value="Crafting in Workshop" ${(ord.status || '') === 'Crafting in Workshop' ? 'selected' : ''}>Crafting in Workshop</option>
+                  <option value="Packed & Dispatched" ${(ord.status || '') === 'Packed & Dispatched' ? 'selected' : ''}>Packed & Dispatched</option>
+                  <option value="Delivered" ${(ord.status || '') === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                  <option value="Cancelled" ${(ord.status || '') === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+                <button onclick="changeStatus('${id}', document.getElementById('statusSelect_${id}').value, this)" class="action-btn-sm" style="background: black; color: white; border: none; font-weight: 700; padding: 7px 12px; cursor: pointer; border-radius: 6px; white-space: nowrap;" title="Save Status to Cloud">
+                  Update
+                </button>
+              </div>
+            </td>
+
+            <td style="vertical-align: top;">
+              <a href="https://wa.me/91${ord.phone || '9876543210'}?text=Namaste%20${encodeURIComponent(ord.customerName || 'Customer')},%20update%20from%20Radhey%20Radhey%20Furniture:%20Your%20Order%20%23${id}%20status%20is%20now%20%22${encodeURIComponent(ord.status || 'Confirmed')}%22." class="action-btn-sm" style="color: green; border-color: lightgreen; background: honeydew; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Send WhatsApp Update">
+                💬 Chat
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function changeStatus(orderId, newStatus, btnEl) {
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = '⏳ Saving...';
+      }
+      try {
+        await updateOrderStatusInDB(orderId, newStatus);
+        alert(`✅ Order #${orderId} status successfully updated to: ${newStatus}!`);
+        await renderAdminOrders();
+      } catch (err) {
+        console.error('Order update error:', err);
+        alert('Error updating order status: ' + err.message);
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = 'Update';
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await renderAdminOrders();
+    });
+  </script>
+</body>
+</html>

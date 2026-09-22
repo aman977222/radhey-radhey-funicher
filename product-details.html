@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details — Radhey Radhey Furniture & Handicraft</title>
+  <meta name="description"
+    content="View product specifications, wood finish options, dimensions, and authentic customer reviews.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    /* ================= PRODUCT DETAILS SPECIFIC STYLES ================= */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      gap: 36px;
+      margin: 25px auto 50px;
+      align-items: start;
+    }
+
+    .gallery-container {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .gallery-main {
+      background: white;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      height: 460px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+
+    .gallery-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-thumbs {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 4px 2px 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .gallery-thumbs::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .gallery-thumbs::-webkit-scrollbar-thumb {
+      background: var(--cream-muted);
+      border-radius: 4px;
+    }
+
+    .thumb-item {
+      flex: 0 0 74px;
+      height: 74px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      background: white;
+    }
+
+    .thumb-item.active {
+      border-color: var(--primary-red);
+      box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.15);
+    }
+
+    .thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-summary-box {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .pdp-breadcrumb {
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+      color: gray;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .pdp-breadcrumb a {
+      color: black;
+      font-weight: 500;
+    }
+
+    .pdp-breadcrumb a:hover {
+      color: var(--primary-red);
+    }
+
+    .finish-selector-group {
+      margin: 18px 0;
+    }
+
+    .finish-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .finish-pill {
+      border: 1.5px solid var(--border-light);
+      padding: 7px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      background: white;
+      user-select: none;
+    }
+
+    .finish-pill.active,
+    .finish-pill:hover {
+      border-color: var(--primary-red);
+      color: var(--primary-red);
+      background: rgba(200, 16, 46, 0.05);
+    }
+
+    /* Actions & Buttons */
+    .pdp-cta-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .pdp-qty-wish-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .qty-picker {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: white;
+      height: 48px;
+    }
+
+    .qty-picker button {
+      padding: 0 16px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      background: white;
+      border: none;
+      height: 100%;
+      cursor: pointer;
+      color: var(--text-dark);
+      transition: background 0.15s;
+    }
+
+    .qty-picker button:hover {
+      background: #f5f5f5;
+    }
+
+    .qty-picker input {
+      width: 44px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      background: transparent;
+    }
+
+    .pdp-wish-btn {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      padding: 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      font-size: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .pdp-wish-btn:hover {
+      border-color: var(--primary-red);
+      background: rgba(200, 16, 46, 0.05);
+    }
+
+    .pdp-btns-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .pdp-cart-btn {
+      flex: 1;
+      padding: 13px 18px;
+      height: 48px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      border-radius: var(--radius-md);
+    }
+
+    .pdp-buy-btn {
+      padding: 13px 22px;
+      height: 48px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: var(--radius-md);
+    }
+
+    .pdp-whatsapp-btn {
+      width: 100%;
+      border: 1.5px solid #22c55e;
+      color: #15803d;
+      background: #f0fdf4;
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      box-sizing: border-box;
+      margin-top: 15px;
+    }
+
+    .pdp-whatsapp-btn:hover {
+      background: #dcfce7;
+    }
+
+    .pdp-fab-btn {
+      flex: 1;
+      background: #25D366;
+      color: white;
+      padding: 14px 18px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(37,211,102,0.3);
+      text-decoration: none;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      table-layout: auto;
+    }
+
+    .specs-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.88rem;
+      word-break: break-word;
+    }
+
+    .specs-table td:first-child {
+      font-weight: 700;
+      color: var(--text-dark);
+      width: 36%;
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Override mobile header navbar for product-details page specifically */
+    @media (max-width: 768px) {
+      .navbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        padding: 8px 0 !important;
+      }
+
+      .navbar .brand-logo {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .navbar .header-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .details-grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        margin: 15px auto 40px;
+      }
+
+      .gallery-main {
+        height: 350px;
+      }
+
+      .product-summary-box {
+        padding: 20px 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .details-grid {
+        gap: 16px;
+        margin: 10px auto 30px;
+      }
+
+      .gallery-main {
+        height: 280px;
+        border-radius: var(--radius-md);
+      }
+
+      .thumb-item {
+        flex: 0 0 62px;
+        height: 62px;
+      }
+
+      .product-summary-box {
+        padding: 16px 14px;
+        border-radius: var(--radius-md);
+      }
+
+      .pdp-cta-container {
+        gap: 10px;
+      }
+
+      .pdp-qty-wish-wrap {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .pdp-qty-wish-wrap .qty-picker {
+        flex: 1;
+        justify-content: space-between;
+      }
+
+      .pdp-qty-wish-wrap .qty-picker button {
+        flex: 1;
+      }
+
+      .pdp-btns-wrap {
+        width: 100%;
+      }
+
+      .pdp-btns-wrap .btn {
+        padding: 12px 10px;
+        font-size: 0.88rem;
+      }
+
+      .pdp-whatsapp-btn {
+        font-size: 0.84rem;
+        padding: 11px 12px;
+      }
+
+      .pdp-fab-btn {
+        font-size: 0.86rem;
+        padding: 12px 14px;
+      }
+
+      .specs-table td {
+        padding: 8px 10px;
+        font-size: 0.82rem;
+      }
+
+      .specs-table td:first-child {
+        width: 42%;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .gallery-main {
+        height: 240px;
+      }
+
+      .pdp-btns-wrap {
+        flex-direction: column;
+      }
+
+      .pdp-btns-wrap .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= TOP ANNOUNCEMENT BAR ================= -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span>🔴 Official Store: 100% Solid Seasoned Wood & Authenticity Certificate Included</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+917791067090">
+          <i class="bi bi-telephone"></i>
+          Call: +91 7791067090
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="shop.html" class="action-btn">
+          <i class="bi bi-bag"></i>
+          <span>Catalog</span>
+        </a>
+        <a href="user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+        <a href="cart.html" class="action-btn">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+        <a href="user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN PRODUCT CONTAINER ================= -->
+  <div class="container" style="padding-top: 20px; padding-bottom: 40px;">
+    <div id="productDetailContainer">
+      <!-- Injected via JavaScript -->
+    </div>
+
+    <!-- Related Products -->
+    <div class="section" style="border-top: 1px solid var(--border-light); margin-top: 40px; padding-top: 25px;">
+      <div class="section-header" style="text-align: left; margin-bottom: 22px;">
+        <span class="section-subtitle">RECOMMENDED FOR YOUR HOME</span>
+        <h2 class="section-title">Similar <span>Handcrafted Designs</span></h2>
+      </div>
+      <div class="product-grid" id="relatedProductsGrid"></div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+      <div>Direct Workshop Delivery Pan India.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id') || 'rf-101';
+    let currentProduct = getProductById(productId) || PRODUCTS_DATA[0];
+    let selectedFinish = currentProduct.finish ? currentProduct.finish[0] : 'Standard Polish';
+    let selectedQuantity = 1;
+
+    function renderDetails() {
+      const p = currentProduct;
+      const isFab = ['windows', 'doors', 'gates', 'mirrors', 'partitions', 'railings', 'shower', 'aluminium', 'steel-work'].includes(p.category);
+      document.title = `${p.title} — Radhey Radhey Furniture`;
+
+      const loggedUser = getLoggedInCustomer();
+      const isAdminOrSuper = loggedUser && (loggedUser.role === 'admin' || loggedUser.role === 'superadmin');
+      const allImgs = (Array.isArray(p.images) && p.images.length > 0) ? p.images : [p.image];
+      const fallbackImg = resolveStoreImg('', p.category);
+      const finishesList = (Array.isArray(p.finishes) && p.finishes.length > 0) ? p.finishes : ((Array.isArray(p.finish) && p.finish.length > 0) ? p.finish : []);
+
+      const container = document.getElementById('productDetailContainer');
+      container.innerHTML = `
+        <div class="pdp-breadcrumb">
+          <a href="index.html">Home</a> / 
+          ${isFab ? `<a href="Aluminium products/${p.category}.html">${p.categoryName}</a>` : `<a href="shop.html?cat=${p.category}">${p.categoryName}</a>`} / 
+          <span style="color: var(--primary-red); font-weight: 600;">${p.title}</span>
+        </div>
+
+        ${isAdminOrSuper ? `
+          <div style="margin-bottom: 20px; padding: 12px 18px; background: black; border-radius: 10px; border-left: 5px solid goldenrod; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div>
+              <div style="color: gold; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+                👑 Store Admin Quick Action
+              </div>
+              <div style="color: gray; font-size: 0.8rem; margin-top: 3px;">
+                Aap store par is product ko live dekh rahe hain. Iska price, finish, stock status ya photos edit karein.
+              </div>
+            </div>
+            <a href="${isFab ? `admin/manage-aluminium.html?edit=${encodeURIComponent(p.id)}` : `admin/manage-products.html?edit=${encodeURIComponent(p.id)}`}" class="btn" style="background: red; color: white; font-weight: 800; font-size: 0.85rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              ✏️ Edit Product in Admin Panel
+            </a>
+          </div>
+        ` : ''}
+
+        <div class="details-grid">
+          <!-- Gallery -->
+          <div class="gallery-container">
+            <div class="gallery-main">
+              <img id="mainProductImg" src="${resolveStoreImg(p.image, p.category)}" alt="${p.title}" onerror="this.onerror=null;this.src='${fallbackImg}';">
+              <span class="product-badge" style="top: 14px; left: 14px;">${p.badge || (isFab ? 'Architectural Model' : 'Artisan Handcrafted')}</span>
+            </div>
+            ${allImgs.length > 1 ? `
+              <div class="gallery-thumbs">
+                ${allImgs.map((img, i) => `
+                  <div class="thumb-item ${i === 0 ? 'active' : ''}"
+                       onclick="document.getElementById('mainProductImg').src='${resolveStoreImg(img, p.category)}'; this.parentElement.querySelectorAll('.thumb-item').forEach(d => d.classList.remove('active')); this.classList.add('active');">
+                    <img src="${resolveStoreImg(img, p.category)}" alt="Thumb ${i + 1}" onerror="this.onerror=null;this.src='${fallbackImg}';">
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Summary & Actions -->
+          <div class="product-summary-box">
+            <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--primary-red); font-weight: 800; letter-spacing: 1px;">
+              ${p.categoryName}
+            </span>
+            <h1 style="font-family: var(--font-serif); font-size: clamp(1.3rem, 4vw, 1.85rem); font-weight: 800; color: black; margin: 6px 0 12px; line-height: 1.25; word-break: break-word;">
+              ${p.title}
+            </h1>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 0.88rem; flex-wrap: wrap;">
+              <div style="color: gold; font-weight: bold;">
+                ★ ${p.rating || 5.0} <span style="color: gray; font-weight: normal; font-size: 0.82rem;">(${p.reviewCount || 1} Verified Reviews)</span>
+              </div>
+              ${p.inStock !== false ? `
+                <span style="color: forestgreen; font-weight: 700; background: honeydew; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem;">
+                  ● In Stock ${isFab ? '(Ready to Fabricate)' : '(Ready to Ship)'}
+                </span>
+              ` : `
+                <span style="color: darkred; font-weight: 700; background: mistyrose; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem;">
+                  ✕ Out of Stock (Currently Unavailable)
+                </span>
+              `}
+            </div>
+
+            <!-- Price -->
+            ${isFab ? `
+              <div style="display: flex; align-items: baseline; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); flex-wrap: wrap;">
+                <span style="font-size: 1.4rem; font-weight: 800; color: #1e293b;">${p.rateUnit ? `Rate: ${p.rateUnit}` : 'Rate on Quotation'}</span>
+              </div>
+            ` : `
+              <div style="display: flex; align-items: baseline; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); flex-wrap: wrap;">
+                <span style="font-size: clamp(1.5rem, 5vw, 2.1rem); font-weight: 800; color: black;">${formatPrice(p.price)}</span>
+                ${p.originalPrice && p.originalPrice > p.price ? `
+                  <span style="font-size: 1.1rem; color: gray; text-decoration: line-through;">${formatPrice(p.originalPrice)}</span>
+                  <span style="color: var(--primary-red); font-weight: 800; font-size: 0.95rem;">Save ${p.discount || (Math.round((1 - p.price / p.originalPrice) * 100) + '% OFF')}</span>
+                ` : ''}
+                ${p.rateUnit ? `<span style="font-size: 0.85rem; color: gray; font-weight: 700;">(${p.rateUnit})</span>` : ''}
+              </div>
+            `}
+
+            <p style="color: gray; font-size: 0.94rem; line-height: 1.6; margin: 16px 0; word-break: break-word;">
+              ${p.description || (isFab ? 'Custom engineered architectural fabrication manufactured with high-grade alloys and precision hardware.' : 'Handcrafted solid wood product crafted by master artisans.')}
+            </p>
+
+            <!-- Finish Option -->
+            ${finishesList.length > 0 ? `
+              <div class="finish-selector-group">
+                <label style="font-size: 0.85rem; font-weight: 700; color: black;">${isFab ? 'Select Finish / Color Scheme:' : 'Select Wood Polish Finish:'}</label>
+                <div class="finish-options">
+                  ${finishesList.map((f, idx) => `
+                    <div class="finish-pill ${idx === 0 ? 'active' : ''}" onclick="selectFinish('${f}', this)">
+                      ${f}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Quantity & Actions -->
+            ${isFab ? `
+              <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px; width: 100%;">
+                <button onclick="handleFabricationWhatsAppInquiry('${p.id}')" class="pdp-fab-btn">
+                  <i class="bi bi-whatsapp" style="font-size: 1.25rem;"></i>
+                  <span>Inquire &amp; Book Site Survey on WhatsApp</span>
+                </button>
+                <button id="pdpWishlistBtn" class="pdp-wish-btn" onclick="handleTogglePdpWishlist('${p.id}')" title="Save to Wishlist">
+                  <span id="pdpWishlistIcon">${getWishlist().includes(p.id) ? '❤️' : '🤍'}</span>
+                </button>
+              </div>
+            ` : `
+              <div class="pdp-cta-container">
+                ${p.inStock !== false ? `
+                  <div class="pdp-qty-wish-wrap">
+                    <div class="qty-picker">
+                      <button onclick="changeQty(-1)" aria-label="Decrease quantity">−</button>
+                      <input type="text" id="qtyInput" value="1" readonly>
+                      <button onclick="changeQty(1)" aria-label="Increase quantity">+</button>
+                    </div>
+
+                    <button id="pdpWishlistBtn" class="pdp-wish-btn" onclick="handleTogglePdpWishlist('${p.id}')" title="Save to Wishlist">
+                      <span id="pdpWishlistIcon">${getWishlist().includes(p.id) ? '❤️' : '🤍'}</span>
+                    </button>
+                  </div>
+
+                  <div class="pdp-btns-wrap">
+                    <button class="btn btn-red pdp-cart-btn" onclick="handleAddToCart()">
+                      <i class="bi bi-bag"></i>
+                      Add to Cart
+                    </button>
+
+                    <button class="btn btn-dark pdp-buy-btn" onclick="handleBuyNow()">
+                      Buy Now
+                    </button>
+                  </div>
+                ` : `
+                  <button class="btn btn-block" style="background: mistyrose; color: darkred; border: 1px solid lightcoral; padding: 14px 20px; font-weight: 800; cursor: not-allowed; width: 100%; border-radius: 8px;" disabled>
+                    ✕ Currently Out of Stock (Contact for Pre-Order)
+                  </button>
+                `}
+              </div>
+
+              <!-- WhatsApp Direct Inquiry -->
+              <a href="https://wa.me/919772225296?text=Hello%20Radhey%20Radhey%20Workshop,%20I%20am%20interested%20in:%20${encodeURIComponent(p.title)}%20(${formatPrice(p.price)})" class="pdp-whatsapp-btn" target="_blank" rel="noopener">
+                <i class="bi bi-whatsapp" style="font-size: 1.15rem; color: #16a34a;"></i>
+                Inquire on WhatsApp (+91 9772225296)
+              </a>
+            `}
+
+            <!-- Specifications Table -->
+            <div style="margin-top: 28px;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 10px;">${isFab ? 'Technical Specifications' : 'Product Specifications'}</h3>
+              <table class="specs-table">
+                ${isFab ? `
+                  <tr>
+                    <td>Alloy / Profile Series</td>
+                    <td>${p.aluminiumProfile || p.woodType || 'Jindal 6063-T6 Virgin Architectural Alloy'}</td>
+                  </tr>
+                  <tr>
+                    <td>Glass / Glazing System</td>
+                    <td>${p.glassSystem || p.glassType || 'Saint-Gobain Toughened Safety Glass'}</td>
+                  </tr>
+                  <tr>
+                    <td>Hardware & Rollers</td>
+                    <td>${p.hardwareRollers || p.hardware || 'Stainless Steel SS-304 Heavy-Duty'}</td>
+                  </tr>
+                  <tr>
+                    <td>Gaskets & Weatherstrip</td>
+                    <td>${p.weatherGaskets || p.rubberGasket || 'EPDM Automotive-Grade Rubber Woolpile'}</td>
+                  </tr>
+                  ${p.mosquitoMesh ? `
+                    <tr>
+                      <td>Mosquito Mesh</td>
+                      <td>${p.mosquitoMesh}</td>
+                    </tr>
+                  ` : ''}
+                  <tr>
+                    <td>Rate Unit / Sizing</td>
+                    <td>${p.rateUnit || p.dimensions || 'Custom Specification / Site Measurement'}</td>
+                  </tr>
+                  <tr>
+                    <td>Warranty</td>
+                    <td>${p.warranty || '10 Years Color & Structural Guarantee'}</td>
+                  </tr>
+                ` : `
+                  <tr>
+                    <td>Primary Material</td>
+                    <td>${p.woodType || '100% Solid Seasoned Wood'}</td>
+                  </tr>
+                  <tr>
+                    <td>Dimensions</td>
+                    <td>${p.dimensions || 'Standard Factory Sizing'}</td>
+                  </tr>
+                  <tr>
+                    <td>Warranty</td>
+                    <td>${p.warranty || '10 Years Wood Warranty'}</td>
+                  </tr>
+                  <tr>
+                    <td>Origin</td>
+                    <td>100% Handcrafted by Artisans in Workshop, Kekri</td>
+                  </tr>
+                  <tr>
+                    <td>Assembly</td>
+                    <td>Pre-assembled / Simple Do-it-yourself with support</td>
+                  </tr>
+                `}
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Render related products
+      const allCatalog = (typeof getLiveCatalogDatabase === 'function') ? getLiveCatalogDatabase() : PRODUCTS_DATA;
+      const relatedSameCat = allCatalog.filter(x => x.id !== p.id && x.category === p.category).slice(0, 4);
+      const related = relatedSameCat.length > 0 ? relatedSameCat : allCatalog.filter(x => x.id !== p.id).slice(0, 4);
+      const relGrid = document.getElementById('relatedProductsGrid');
+      if (relGrid) {
+        relGrid.innerHTML = related.map(x => renderProductCard(x)).join('');
+      }
+    }
+
+    function selectFinish(finish, el) {
+      selectedFinish = finish;
+      document.querySelectorAll('.finish-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function changeQty(delta) {
+      selectedQuantity = Math.max(1, selectedQuantity + delta);
+      document.getElementById('qtyInput').value = selectedQuantity;
+    }
+
+    function handleAddToCart() {
+      addToCart(currentProduct.id, selectedQuantity, selectedFinish);
+    }
+
+    function handleBuyNow() {
+      const user = getLoggedInCustomer();
+      if (!user) {
+        showToast('⚠️ Kharidari karne ke liye kripya pehle Login karein!', 'warning');
+        setTimeout(() => {
+          window.location.href = 'login.html?redirect=' + encodeURIComponent('product-details.html?id=' + currentProduct.id);
+        }, 1000);
+        return;
+      }
+      addToCart(currentProduct.id, selectedQuantity, selectedFinish);
+      window.location.href = 'checkout.html';
+    }
+
+    function handleTogglePdpWishlist(productId) {
+      toggleWishlist(productId);
+      const isWish = getWishlist().includes(productId);
+      const icon = document.getElementById('pdpWishlistIcon');
+      if (icon) icon.textContent = isWish ? '❤️' : '🤍';
+    }
+
+    async function loadCloudProduct() {
+      if (typeof getAllProducts === 'function') {
+        try {
+          const prods = await getAllProducts();
+          if (Array.isArray(prods)) {
+            const found = prods.find(p => p.id === productId || p._id === productId);
+            if (found) {
+              currentProduct = found;
+              selectedFinish = currentProduct.finish ? currentProduct.finish[0] : 'Standard Polish';
+              renderDetails();
+            }
+          }
+        } catch (e) {
+          console.warn('Cloud product load error:', e);
+        }
+      }
+    }
+
+    window.addEventListener('radha_products_synced', (e) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        const found = e.detail.find(p => p.id === productId || p._id === productId);
+        if (found) {
+          currentProduct = found;
+          selectedFinish = currentProduct.finish ? currentProduct.finish[0] : 'Standard Polish';
+          renderDetails();
+        }
+      }
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'radha_furniture_custom_products_v1') {
+        const prods = getProductsCatalog();
+        const found = prods.find(p => p.id === productId || p._id === productId);
+        if (found) {
+          currentProduct = found;
+          selectedFinish = currentProduct.finish ? currentProduct.finish[0] : 'Standard Polish';
+          renderDetails();
+        }
+      }
+    });
+
+    window.addEventListener('radha_wishlist_synced', () => {
+      if (currentProduct) {
+        const isWish = getWishlist().includes(currentProduct.id);
+        const icon = document.getElementById('pdpWishlistIcon');
+        if (icon) icon.textContent = isWish ? '❤️' : '🤍';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDetails();
+      loadCloudProduct();
+    });
+  </script>
+</body>
+
+</html>

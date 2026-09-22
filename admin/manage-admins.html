@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Admins & Roles — Radhey Radhey Furniture Super Admin</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/admin-style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .admin-form-card {
+      background: white;
+      border: 1px solid var(--border-color, lightgray);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group-admin {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group-admin label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: darkslategray;
+    }
+    .form-group-admin input, .form-group-admin select {
+      padding: 10px 12px;
+      border: 1px solid lightgray;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group-admin input:focus, .form-group-admin select:focus {
+      border-color: red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    .role-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .role-super {
+      background: bisque;
+      color: brown;
+      border: 1px solid gold;
+    }
+    .role-admin {
+      background: aliceblue;
+      color: dodgerblue;
+      border: 1px solid lightblue;
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div style="width: 38px; height: 38px; background: red; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: serif;">
+        RR
+      </div>
+      <div>
+        <strong style="font-size: 0.95rem; display: block;">RADHEY RADHEY</strong>
+        <span class="badge" style="background: brown; color: white;">SUPER ADMIN</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-heading">Main Navigation</div>
+      <a href="dashboard.html">📊 Store Overview</a>
+      <a href="manage-products.html">🛋️ Wooden Furniture</a>
+      <a href="manage-aluminium.html" style="color: darkred; font-weight: 700;">🏗️ Aluminium &amp; Steel Works</a>
+      <a href="manage-orders.html">📦 Manage Orders</a>
+      <a href="manage-inquiries.html">📩 Customer Inquiries</a>
+      <a href="manage-users.html">👥 Customers</a>
+      <a href="site-settings.html">⚙️ Store Settings</a>
+
+      <div class="nav-heading super-admin-only">Super Admin Controls</div>
+      <a href="manage-admins.html" class="active super-admin-only" style="color: brown; font-weight: 700;">👑 Manage Admins</a>
+
+      <div class="nav-heading">Shortcuts</div>
+      <a href="../index.html">🌐 View Live Website</a>
+      <a href="javascript:void(0)" onclick="adminLogout()" style="color: red;">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">👑 Administrator Access Control</h2>
+        <span class="role-badge-pill role-super" id="adminRoleBadge">
+          👑 SUPER ADMIN
+        </span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <button type="button" onclick="loadAdminsList()" class="action-btn-sm" style="display: flex; align-items: center; gap: 6px; font-weight: 700; background: white; border: 1px solid lightgray; cursor: pointer; padding: 8px 14px; border-radius: 6px;">
+          🔄 Refresh Admins
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="admin-avatar-display" style="width: 36px; height: 36px; border-radius: 50%; background: brown; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem;">
+            👑
+          </div>
+          <span class="admin-user-name" style="font-size: 0.88rem; font-weight: 700;">Super Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Top Metrics -->
+      <div class="metric-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="metric-card">
+          <div class="metric-icon">👑</div>
+          <div>
+            <div class="metric-value" id="countSuperAdmins">1</div>
+            <div class="metric-label">Super Administrators</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🛡️</div>
+          <div>
+            <div class="metric-value" id="countStoreAdmins">0</div>
+            <div class="metric-label">Store Staff Admins</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🔥</div>
+          <div>
+            <div class="metric-value" style="color: green;">Active</div>
+            <div class="metric-label">Firebase Cloud Auth</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Admin Form -->
+      <div class="admin-form-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid whitesmoke; padding-bottom: 12px;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 4px 0; color: black;">➕ Add New Administrator</h3>
+            <p style="font-size: 0.82rem; color: gray; margin: 0;">Create a new staff admin account to manage products, orders, or full store operations.</p>
+          </div>
+        </div>
+
+        <form onsubmit="handleCreateAdmin(event)">
+          <div class="form-grid-2">
+            <div class="form-group-admin">
+              <label>Full Name *</label>
+              <input type="text" id="newAdminName" placeholder="e.g. Ramesh Chandra" required>
+            </div>
+            <div class="form-group-admin">
+              <label>Official Email Address *</label>
+              <input type="email" id="newAdminEmail" placeholder="admin@radheyradheyfurniture.com" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-admin">
+              <label>Mobile Number (WhatsApp) *</label>
+              <input type="tel" id="newAdminPhone" placeholder="10-digit mobile" required pattern="[0-9]{10}">
+            </div>
+            <div class="form-group-admin">
+              <label>Login Password * (Min 6 characters)</label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="newAdminPass" placeholder="Enter secure password" required minlength="6" style="width: 100%; padding-right: 42px;">
+                <button type="button" onclick="togglePasswordVisibility('newAdminPass', this)" style="position: absolute; right: 8px; background: none; border: none; cursor: pointer; color: gray; font-size: 1.15rem; padding: 4px;" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-admin">
+              <label>Administrative Role *</label>
+              <select id="newAdminRole" required>
+                <option value="admin" selected>🛡️ Store Admin (Manage Products, Orders, Customers)</option>
+                <option value="superadmin">👑 Super Admin (Full Control + Add Other Admins)</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button type="submit" id="createAdminBtn" class="btn btn-red" style="padding: 11px 24px; font-weight: 800; width: 100%;">
+                Create Administrator Account →
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Active Administrators Directory -->
+      <div class="admin-table-card">
+        <div class="admin-table-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0;">Active Administrators & Staff</h3>
+            <p style="font-size: 0.8rem; color: gray; margin: 0;">Authorized accounts that can access the store administration control panel.</p>
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Indicator Badge -->
+        <div class="mobile-table-scroll-hint">
+          <span>📱 <strong>Mobile View:</strong> Admin privileges aur revoke actions dekhne ke liye scroll karein</span>
+          <span class="scroll-arrow-badge">Scroll Horizontally ➔</span>
+        </div>
+
+        <div class="admin-table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 180px;">Administrator</th>
+                <th style="min-width: 150px;">Mobile Contact</th>
+                <th style="min-width: 160px;">System Role</th>
+                <th style="min-width: 130px;">Date Added</th>
+                <th style="min-width: 110px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 36px; color: gray;">
+                  ⏳ Loading admin directory from database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/admin.js"></script>
+  <script>
+    // AUTH GUARD: Require SUPER ADMIN access
+    const currentAdmin = enforceAdminAuth(true);
+
+    async function loadAdminsList() {
+      const tbody = document.getElementById('adminsTableBody');
+      const countSuper = document.getElementById('countSuperAdmins');
+      const countStore = document.getElementById('countStoreAdmins');
+
+      try {
+        const admins = await fbGetAdmins();
+
+        let numSuper = 0;
+        let numAdmin = 0;
+
+        if (!admins || admins.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: gray;">No administrators found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = admins.map(adm => {
+          const role = (adm.role || 'admin').toLowerCase();
+          const isSuper = role === 'superadmin';
+          if (isSuper) numSuper++;
+          else numAdmin++;
+
+          const isCurrentSession = currentAdmin && ((adm.email && adm.email === currentAdmin.email) || (adm.phone && adm.phone === currentAdmin.phone));
+          const dateStr = adm.createdAt ? new Date(adm.createdAt).toLocaleDateString('en-IN') : 'Active Admin';
+          const identifier = adm.id || adm.email || adm.phone;
+
+          return `
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 34px; height: 34px; border-radius: 50%; background: ${isSuper ? 'bisque' : 'aliceblue'}; color: ${isSuper ? 'brown' : 'dodgerblue'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem;">
+                  ${isSuper ? '👑' : '🛡️'}
+                </div>
+                <div>
+                  <strong style="color: black; display: block;">${adm.name || 'Staff Admin'}</strong>
+                  <span style="font-size: 0.78rem; color: gray;">${adm.email || 'No email registered'}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="font-family: monospace; font-size: 0.88rem; color: darkslategray;">+91 ${adm.phone || '—'}</span>
+            </td>
+            <td>
+              <span class="role-badge-pill ${isSuper ? 'role-super' : 'role-admin'}">
+                ${isSuper ? '👑 SUPER ADMIN' : '🛡️ STORE ADMIN'}
+              </span>
+            </td>
+            <td style="font-size: 0.85rem; color: gray;">
+              ${dateStr}
+            </td>
+            <td>
+              ${isCurrentSession ? `
+                <span style="font-size: 0.78rem; color: gray; font-weight: 700; background: whitesmoke; padding: 4px 8px; border-radius: 4px;">
+                  🔒 Active Session
+                </span>
+              ` : `
+                <button type="button" onclick="handleDeleteAdmin('${identifier}', '${(adm.name || 'Admin').replace(/'/g, "\\'")}')" class="action-btn-sm" style="color: red; border-color: lightcoral; background: snow; cursor: pointer;" title="Revoke Admin Privileges">
+                  🗑️ Delete Admin
+                </button>
+              `}
+            </td>
+          </tr>
+          `;
+        }).join('');
+
+        countSuper.textContent = numSuper;
+        countStore.textContent = numAdmin;
+      } catch (err) {
+        console.error('loadAdminsList error:', err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red; padding: 20px;">Error loading admins: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleCreateAdmin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('createAdminBtn');
+      const originalText = btn.innerHTML;
+
+      try {
+        const name = document.getElementById('newAdminName').value.trim();
+        const email = document.getElementById('newAdminEmail').value.trim().toLowerCase();
+        let phone = document.getElementById('newAdminPhone').value.trim().replace(/[\s\-\+]/g, '');
+        if (phone.startsWith('91') && phone.length === 12) phone = phone.slice(2);
+        if (phone.startsWith('0') && phone.length === 11) phone = phone.slice(1);
+        const password = document.getElementById('newAdminPass').value;
+        const role = document.getElementById('newAdminRole').value;
+
+        if (phone.length < 10) {
+          alert('Please enter a valid 10-digit mobile number!');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving Administrator...';
+
+        const res = await fbCreateAdmin({ name, email, phone, password, role });
+        if (res && res.success) {
+          alert(`Success! Admin account for "${name}" (${role.toUpperCase()}) created successfully.\nThey can now log in at login.html using their email/mobile and password.`);
+          e.target.reset();
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          await loadAdminsList();
+        } else {
+          alert((res && res.message) || 'Failed to create administrator.');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      } catch (err) {
+        console.error('handleCreateAdmin error:', err);
+        alert('Error creating admin: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    async function handleDeleteAdmin(identifier, adminName = 'Administrator') {
+      if (!confirm(`Kya aap sach me administrator "${adminName}" (${identifier}) ko remove karna chahte hain?\n\nYeh account admin panel me access nahi kar payega aur database se hata diya jayega.`)) {
+        return;
+      }
+
+      try {
+        const res = await fbDeleteAdmin(identifier);
+        if (res && res.success) {
+          alert(`✅ Administrator "${adminName}" successfully removed.`);
+          await loadAdminsList();
+        } else {
+          alert((res && res.message) || 'Could not delete administrator.');
+        }
+      } catch (err) {
+        console.error('handleDeleteAdmin error:', err);
+        alert('Error: ' + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadAdminsList();
+    });
+  </script>
+</body>
+</html>

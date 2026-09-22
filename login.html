@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Login — Radhey Radhey Furniture & Handicraft</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .auth-wrapper {
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 35px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-light);
+      border-top: 4px solid var(--primary-red);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: gray;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .form-group input:focus {
+      background: white;
+      border-color: var(--primary-red);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+      <a href="index.html" style="color: white; font-size: 0.88rem; margin-left: auto;">← Back to Home</a>
+    </div>
+  </header>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="font-family: var(--font-serif); font-size: 1.8rem; font-weight: 800; color: black;">Welcome Back</h2>
+        <p style="color: gray; font-size: 0.9rem;">Sign in to track orders and manage saved wooden designs</p>
+      </div>
+
+      <div id="loginPromptNotice" style="display: none; margin-bottom: 20px; padding: 12px 14px; background: snow; border-left: 4px solid red; border-radius: 6px; font-size: 0.86rem; color: darkred; line-height: 1.4;"></div>
+
+      <!-- 2-Minute Lockout Alert Container -->
+      <div id="loginLockoutBox" style="display: none; margin-bottom: 22px; padding: 18px; background: snow; border: 2px solid red; border-radius: 10px; text-align: center;">
+        <div style="font-size: 1.8rem; margin-bottom: 6px;">🛑</div>
+        <h4 style="color: darkred; font-weight: 800; font-size: 1.05rem; margin-bottom: 6px;">Login Temporarily Locked</h4>
+        <p style="color: dimgray; font-size: 0.88rem; line-height: 1.4; margin-bottom: 12px;">
+          Suraksha ke liye: <strong>3 baar galat password</strong> dalne par <strong>2 minute ka break</strong> lagaya gaya hai.
+        </p>
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: darkred; color: white; padding: 8px 22px; border-radius: 8px; font-weight: 800; font-size: 1.35rem; font-family: monospace; letter-spacing: 1.5px;" id="lockoutTimerDisplay">
+          ⏱️ 02:00
+        </div>
+        <p style="color: gray; font-size: 0.78rem; margin-top: 10px; margin-bottom: 0;">
+          Timer 00:00 hone ke baad hi aap punah password enter kar payenge.
+        </p>
+      </div>
+
+      <form onsubmit="handleLogin(event)" id="loginForm">
+        <div class="form-group">
+          <label>Email Address or Mobile Number</label>
+          <input type="text" id="loginUser" placeholder="name@email.com or 10-digit mobile" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="margin-bottom: 0;">Password</label>
+            <a href="forgot-password.html"
+              style="font-size: 0.8rem; color: var(--primary-red); font-weight: 600;">Forgot?</a>
+          </div>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="loginPass" placeholder="Enter your password" required autocomplete="current-password" style="width: 100%; padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility('loginPass', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: gray; font-size: 1.15rem; padding: 4px;" title="Show/Hide Password">
+              👁️
+            </button>
+          </div>
+          <div id="loginAttemptsWarning" style="display: none; font-size: 0.82rem; color: red; font-weight: 600; margin-top: 6px; padding: 4px 8px; background: snow; border-radius: 4px; border: 1px solid mistyrose;"></div>
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn btn-red btn-block" style="padding: 13px; font-size: 1rem; margin-top: 10px;">
+          Sign In →
+        </button>
+      </form>
+
+      <div style="margin-top: 25px; text-align: center; font-size: 0.9rem; color: gray;">
+        Don't have an account yet?
+        <a href="register.html" style="color: var(--primary-red); font-weight: 700;">Create One Here</a>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-light); text-align: center;">
+        <span style="font-size: 0.82rem; color: gray; display: inline-flex; align-items: center; gap: 6px;">
+          🛡️ Customers login aerya.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    let lockoutInterval = null;
+
+    function formatTime(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function checkAndApplyLockout() {
+      const lock = checkLoginLockout();
+      const lockoutBox = document.getElementById('loginLockoutBox');
+      const timerDisplay = document.getElementById('lockoutTimerDisplay');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const userInput = document.getElementById('loginUser');
+      const passInput = document.getElementById('loginPass');
+      const warningDiv = document.getElementById('loginAttemptsWarning');
+
+      if (lock.isLocked) {
+        if (warningDiv) warningDiv.style.display = 'none';
+        lockoutBox.style.display = 'block';
+        userInput.disabled = true;
+        passInput.disabled = true;
+        submitBtn.disabled = true;
+
+        if (lockoutInterval) clearInterval(lockoutInterval);
+
+        timerDisplay.textContent = '⏱️ ' + formatTime(lock.remainingSec);
+        submitBtn.textContent = '🔒 Locked (' + formatTime(lock.remainingSec) + ')';
+
+        lockoutInterval = setInterval(() => {
+          const currentLock = checkLoginLockout();
+          if (currentLock.isLocked) {
+            timerDisplay.textContent = '⏱️ ' + formatTime(currentLock.remainingSec);
+            submitBtn.textContent = '🔒 Locked (' + formatTime(currentLock.remainingSec) + ')';
+          } else {
+            clearInterval(lockoutInterval);
+            lockoutInterval = null;
+            lockoutBox.style.display = 'none';
+            userInput.disabled = false;
+            passInput.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In →';
+            showToast('✓ 2 minute ka break samapt ho gaya hai. Ab aap login kar sakte hain.', 'success');
+          }
+        }, 1000);
+      } else {
+        if (lockoutInterval) {
+          clearInterval(lockoutInterval);
+          lockoutInterval = null;
+        }
+        lockoutBox.style.display = 'none';
+        userInput.disabled = false;
+        passInput.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In →';
+
+        if (lock.failCount > 0 && warningDiv) {
+          warningDiv.style.display = 'block';
+          warningDiv.innerHTML = `⚠️ Galat password! 3 baar galat password and username dalne par 2 minute ka break lag jayega. (Bache attempts: <strong>${lock.attemptsLeft}</strong>)`;
+        }
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const warningDiv = document.getElementById('loginAttemptsWarning');
+
+      // 1. Guard check: Is login locked?
+      const lockCheck = checkLoginLockout();
+      if (lockCheck.isLocked) {
+        showToast(`Login locked hai! Kripya ${formatTime(lockCheck.remainingSec)} tak wait karein.`, 'error');
+        checkAndApplyLockout();
+        return;
+      }
+
+      try {
+        const userOrEmail = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
+        submitBtn.textContent = 'Signing In...';
+        submitBtn.disabled = true;
+
+        const res = await loginCustomerWithDB(userOrEmail, pass);
+        if (res && res.success) {
+          // Success: Clear lockout & failed counters
+          clearLoginFailureLockout();
+          if (warningDiv) warningDiv.style.display = 'none';
+
+          if (typeof syncCloudUserData === 'function') {
+            await syncCloudUserData().catch(() => {});
+          }
+
+          const role = (res.user && res.user.role ? res.user.role : 'user').toLowerCase();
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectParam = urlParams.get('redirect');
+
+          if (role === 'superadmin') {
+            showToast(`Namaste Super Admin, ${res.user.name || 'Owner'}! 👑`, 'success');
+            setTimeout(() => {
+              const target = (redirectParam && redirectParam.includes('admin')) ? redirectParam : 'admin/dashboard.html';
+              window.location.href = target;
+            }, 600);
+          } else if (role === 'admin') {
+            showToast(`Welcome Store Admin, ${res.user.name || 'Admin'}! 🛡️`, 'success');
+            setTimeout(() => {
+              const target = (redirectParam && redirectParam.includes('admin')) ? redirectParam : 'admin/dashboard.html';
+              window.location.href = target;
+            }, 600);
+          } else {
+            showToast(`Welcome back, ${res.user.name || 'Customer'}!`, 'success');
+            setTimeout(() => {
+              const target = (redirectParam && !redirectParam.includes('admin')) ? redirectParam : 'user/dashboard.html';
+              window.location.href = target;
+            }, 600);
+          }
+        } else {
+          // Failure: Record failed attempt and check 3-attempt limit
+          const failState = handleLoginFailure();
+          if (failState.isLocked) {
+            showToast('🛑 3 baar galat password dala gaya! Suraksha ke liye 2 minute ka break lag gaya hai.', 'error');
+            checkAndApplyLockout();
+          } else {
+            showToast((res && res.message) || 'Login failed. Please check credentials.', 'error');
+            if (warningDiv) {
+              warningDiv.style.display = 'block';
+              warningDiv.innerHTML = `⚠️ Galat password! 3 baar galat dalne par 2 minute ka break lag jayega. (Bache attempts: <strong>${failState.attemptsLeft}</strong>)`;
+            }
+            submitBtn.textContent = 'Sign In →';
+            submitBtn.disabled = false;
+          }
+        }
+      } catch (err) {
+        console.error('Login exception:', err);
+        showToast('Login error: ' + (err.message || 'Please try again'), 'error');
+        submitBtn.textContent = 'Sign In →';
+        submitBtn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check lockout status on page load
+      checkAndApplyLockout();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
+      if (redirectParam) {
+        const notice = document.getElementById('loginPromptNotice');
+        if (notice) {
+          notice.style.display = 'block';
+          if (redirectParam.includes('cart')) {
+            notice.innerHTML = '🛒 <strong>Cart Access:</strong> Kripya apne Cart ko dekhne ya items add karne ke liye pehle Login karein.';
+          } else if (redirectParam.includes('wishlist')) {
+            notice.innerHTML = '❤️ <strong>Wishlist Access:</strong> Kripya apni saved Wishlist dekhne ke liye pehle Login karein.';
+          } else {
+            notice.innerHTML = '🔐 <strong>Login Required:</strong> Aage badhne ke liye kripya apne account me Login karein.';
+          }
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

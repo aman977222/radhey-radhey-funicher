@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — Radhey Radhey Furniture Customer Area</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 30px;
+      margin: 40px auto 70px;
+    }
+    .dash-sidebar {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--border-light);
+      height: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+    .dash-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: black;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      border: 3px solid var(--primary-red);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .dash-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      color: slategray;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    .dash-menu a.active, .dash-menu a:hover {
+      background: rgba(200, 16, 46, 0.08);
+      color: var(--primary-red);
+    }
+    .profile-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      padding: 35px;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: slategray;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      background: white;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: border-color var(--transition-fast);
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--primary-red);
+      background: white;
+      outline: none;
+    }
+    @media (max-width: 860px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="../index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="../shop.html" class="action-btn"><span>Shop</span></a>
+        <a href="wishlist.html" class="action-btn"><span class="badge-count wishlist-count-badge" style="display: none;">0</span><span>Wishlist</span></a>
+        <a href="../cart.html" class="action-btn"><span class="badge-count cart-count-badge" style="display: none;">0</span><span>Cart</span></a>
+        <a href="dashboard.html" class="action-btn active"><span id="headerAccountName">Account</span></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="dash-sidebar">
+        <div style="text-align: center; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; margin-bottom: 20px;">
+          <div class="dash-avatar" id="dashAvatar">RR</div>
+          <h3 id="profileNameDisplay" style="font-size: 1.15rem; font-weight: 800; color: black; margin-bottom: 4px;">Valued Customer</h3>
+          <p id="profileEmailDisplay" style="font-size: 0.82rem; color: gray; margin: 0;">Registered Customer</p>
+        </div>
+
+        <nav class="dash-menu">
+          <a href="dashboard.html">📦 My Orders & Tracking</a>
+          <a href="profile.html" class="active">👤 Edit Profile</a>
+          <a href="wishlist.html">❤️ Saved Wishlist</a>
+          <a href="change-password.html">🔑 Change Password</a>
+          <a href="../index.html">🏠 Back to Store</a>
+          <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main>
+        <div class="profile-card">
+          <div style="margin-bottom: 25px;">
+            <h2 style="font-family: var(--font-serif); font-size: 1.8rem; font-weight: 800; margin: 0 0 6px 0;">
+              Edit <span style="color: var(--primary-red);">Personal Profile</span>
+            </h2>
+            <p style="color: gray; margin: 0; font-size: 0.92rem;">Update your delivery addresses, contact numbers, and personal info.</p>
+          </div>
+
+          <form id="profileForm" onsubmit="handleSaveProfile(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="profName" placeholder="Your Full Name" required>
+              </div>
+
+              <div class="form-group">
+                <label>Mobile Number (WhatsApp) *</label>
+                <input type="tel" id="profPhone" placeholder="10-digit mobile" required pattern="[0-9]{10}">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="profEmail" placeholder="yourname@gmail.com">
+              </div>
+
+              <div class="form-group">
+                <label>City / Region *</label>
+                <input type="text" id="profCity" placeholder="e.g. Jaipur, Rajasthan" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Default Shipping / Delivery Address *</label>
+              <textarea id="profAddress" rows="3" placeholder="Flat No., House Name, Street, Landmark, Area, Pincode" required></textarea>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; align-items: center; gap: 14px;">
+              <button type="submit" id="saveProfileBtn" class="btn btn-red" style="padding: 13px 30px; font-weight: 800; font-size: 0.95rem;">
+                💾 Save Profile Updates
+              </button>
+              <a href="dashboard.html" class="btn btn-outline" style="padding: 12px 20px;">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    // AUTH GUARD: Require customer login
+    const user = getLoggedInCustomer();
+    if (!user) {
+      window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    }
+
+    function fillProfileForm(u) {
+      if (!u) return;
+      const role = (u.role || 'user').toLowerCase();
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+
+      if (u.name) {
+        const nameInput = document.getElementById('profName');
+        if (nameInput && document.activeElement !== nameInput) nameInput.value = u.name;
+        document.getElementById('profileNameDisplay').textContent = u.name;
+        document.getElementById('dashAvatar').textContent = isAdminOrSuper ? (role === 'superadmin' ? '👑' : '🛡️') : u.name.slice(0, 2).toUpperCase();
+        const hdr = document.getElementById('headerAccountName');
+        if (hdr) hdr.textContent = u.name.split(' ')[0];
+      }
+      if (u.phone) {
+        const phoneInput = document.getElementById('profPhone');
+        if (phoneInput && document.activeElement !== phoneInput) phoneInput.value = u.phone;
+      }
+      if (u.email) {
+        const emailInput = document.getElementById('profEmail');
+        if (emailInput && document.activeElement !== emailInput) emailInput.value = u.email;
+        document.getElementById('profileEmailDisplay').textContent = u.email + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      } else if (u.phone) {
+        document.getElementById('profileEmailDisplay').textContent = '+91 ' + u.phone + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      }
+      if (u.city) {
+        const cityInput = document.getElementById('profCity');
+        if (cityInput && document.activeElement !== cityInput) cityInput.value = u.city;
+      }
+      if (u.address) {
+        const addrInput = document.getElementById('profAddress');
+        if (addrInput && document.activeElement !== addrInput) addrInput.value = u.address;
+      }
+
+      if (isAdminOrSuper) {
+        const menu = document.querySelector('.dash-menu');
+        if (menu) {
+          menu.innerHTML = `
+            <a href="../admin/dashboard.html" style="font-weight: 700; color: dodgerblue;">📊 Admin Dashboard</a>
+            <a href="../admin/manage-orders.html" style="font-weight: 700; color: dodgerblue;">📦 Manage All Orders</a>
+            <a href="../admin/manage-products.html" style="font-weight: 700;">🛋️ Manage Products</a>
+            <a href="../admin/site-settings.html" style="font-weight: 700;">⚙️ Website Settings</a>
+            <a href="profile.html" class="active">👤 Edit Profile</a>
+            <a href="wishlist.html">❤️ My Saved Wishlist</a>
+            <a href="../index.html">🏠 Back to Store</a>
+            <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+          `;
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUser = getLoggedInCustomer();
+      if (currentUser) {
+        fillProfileForm(currentUser);
+      }
+    });
+
+    window.addEventListener('radha_profile_synced', (e) => {
+      if (e.detail) {
+        fillProfileForm(e.detail);
+      }
+    });
+
+    async function handleSaveProfile(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveProfileBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving Changes...';
+
+      const updated = {
+        name: document.getElementById('profName').value.trim(),
+        phone: document.getElementById('profPhone').value.trim(),
+        email: document.getElementById('profEmail').value.trim(),
+        city: document.getElementById('profCity').value.trim(),
+        address: document.getElementById('profAddress').value.trim()
+      };
+
+      try {
+        await updateCustomerProfileInDB(updated);
+        fillProfileForm(getLoggedInCustomer());
+        showToast('Profile updated successfully!', 'success');
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        showToast('Failed to update profile. Please try again.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save Profile Updates';
+      }
+    }
+  </script>
+</body>
+</html>

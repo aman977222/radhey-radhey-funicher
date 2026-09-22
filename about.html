@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Our Artisan Heritage & Craftsmanship | Radhey Radhey Furniture</title>
+  <meta name="description" content="Discover the story of Radhey Radhey Furniture & Handicrafts. Over 25 years of handcrafted solid wood furniture and royal Indian artifacts.">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/favicon.png">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+  <!-- ================= TOP BAR ================= -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-left">
+        <span>🔴 Radhey Radhey Furniture & Handicrafts: Rajasthan's Finest Hand-Carved Woodcraft</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="tel:+919772225296">
+          <i class="bi bi-telephone"></i>
+          Call / Support: +91 9772225296
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <!-- Header Action Buttons with Icons -->
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="shop.html" class="action-btn" title="Shop Catalog">
+          <i class="bi bi-grid"></i>
+          <span>Catalog</span>
+        </a>
+        <a href="user/wishlist.html" class="action-btn" title="Saved Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+        <a href="cart.html" class="action-btn" title="View Cart">
+          <i class="bi bi-cart3"></i>
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+        <a href="user/dashboard.html" class="action-btn" title="My Account">
+          <i class="bi bi-person"></i>
+          <span>Account</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
+      </div>
+    </div>
+
+    <div class="nav-categories-bar">
+      <div class="container">
+        <ul class="nav-links" style="display: flex; justify-content: center;">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="category.html">Categories</a></li>
+          <li><a href="about.html" class="active">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= ABOUT HERO ================= -->
+  <div class="page-header-banner" style="background: var(--walnut-darker); padding: 60px 0; border-bottom: 3px solid var(--accent-gold);">
+    <div class="container" style="text-align: center;">
+      <span style="color: var(--accent-gold); font-size: 0.85rem; font-weight: 800; letter-spacing: 2px;">SINCE 1998</span>
+      <h1 style="font-family: var(--font-serif); font-size: 2.8rem; margin: 10px 0; color: var(--cream-light);">Our Story &amp; Royal Craftsmanship</h1>
+      <p style="color: var(--cream-muted); max-width: 650px; margin: 0 auto; font-size: 1.05rem;">
+        Preserving centuries-old Indian woodworking traditions and bringing authentic solid wood royalty to modern homes.
+      </p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; margin-bottom: 60px;">
+      <div>
+        <span class="section-subtitle">OUR PHILOSOPHY</span>
+        <h2 class="section-title" style="font-size: 2.2rem; margin-bottom: 18px;">
+          Pure Solid Wood. <span>Zero Compromise.</span>
+        </h2>
+        <p style="color: gray; font-size: 1rem; line-height: 1.7; margin-bottom: 14px;">
+          Radhey Radhey Furniture & Handicrafts ki shuruat ek saral sankalp ke sath hui thi — ki har bharatiya ghar me aisi lakdi ka furniture pahuche jo sadiyon tak sath nibhaye.
+        </p>
+        <p style="color: gray; font-size: 1rem; line-height: 1.7; margin-bottom: 20px;">
+          Aajkal market me saste chemical-mixed particle board aur fake veneer ka prachalan hai jo 2-3 saal me kharab ho jate hain. Hum keval certified <strong>100% Solid Sheesham (Indian Rosewood)</strong> aur <strong>Teak Wood (Sagwan)</strong> ka istemal karte hain, jise vacuum-pressure chemical seasoning process se guzara jata hai taaki termite aur fungus ka 0% risk rahe.
+        </p>
+        <div style="display: flex; gap: 20px;">
+          <div style="border-left: 3px solid var(--bordo); padding-left: 12px;">
+            <strong style="font-size: 1.4rem; color: var(--green-darker);">15,000+</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Happy Homes Furnished</p>
+          </div>
+          <div style="border-left: 3px solid var(--bordo); padding-left: 12px;">
+            <strong style="font-size: 1.4rem; color: var(--green-darker);">50+</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Master Carving Artisans</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <img src="assets/images/Heritage_logo.jpeg" alt="Wood Artisan" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); border: 2px solid var(--border-light);">
+      </div>
+    </div>
+
+    <!-- Craftsmanship Pillars -->
+    <div class="section-header">
+      <span class="section-subtitle">THE 4 PILLARS OF OUR QUALITY</span>
+      <h2 class="section-title">Why Families Choose <span>Radhey Radhey</span></h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
+      <div style="background: var(--card-bg); padding: 28px; border-radius: 12px; border: 1px solid var(--border-light); border-top: 4px solid var(--bordo);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">🪵</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: var(--text-dark);">Seasoned Grade-A Wood</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Keval naturally aged aur kiln-seasoned lakdi jisme moisture content 8-10% control kiya jata hai taaki lakdi me kabhi bhend na aaye.</p>
+      </div>
+
+      <div style="background: var(--card-bg); padding: 28px; border-radius: 12px; border: 1px solid var(--border-light); border-top: 4px solid var(--bordo);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">🪓</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: var(--text-dark);">Traditional Naqqashi (Carving)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Rajasthani aur Saharanpur ke peerhi-dar-peerhi karigar har ek floral jaali aur temple arch ko hatho se tarashte hain.</p>
+      </div>
+
+      <div style="background: var(--card-bg); padding: 28px; border-radius: 12px; border: 1px solid var(--border-light); border-top: 4px solid var(--bordo);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">🎨</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: var(--text-dark);">Non-Toxic Natural Polish</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Hamari Teak, Honey aur Walnut finishes natural resins aur PU sealers se bani hain jo lakdi ke natural grains ko chamkate hain.</p>
+      </div>
+
+      <div style="background: var(--card-bg); padding: 28px; border-radius: 12px; border: 1px solid var(--border-light); border-top: 4px solid var(--bordo);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">🛡️</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: var(--text-dark);">10-Year Structural Warranty</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Har product par solid wood and termite protection warranty certificate pradan kiya jata hai.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

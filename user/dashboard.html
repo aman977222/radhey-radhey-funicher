@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard & Orders — Radhey Radhey Furniture</title>
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <!-- Google Firebase Cloud SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 30px;
+      margin: 40px auto 70px;
+    }
+
+    .dash-sidebar {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--border-light);
+      height: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dash-user-card {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 20px;
+    }
+
+    .dash-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: black;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      border: 3px solid var(--primary-red);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .dash-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      color: slategray;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+    }
+
+    .dash-menu a.active,
+    .dash-menu a:hover {
+      background: rgba(200, 16, 46, 0.08);
+      color: var(--primary-red);
+    }
+
+    .order-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-badge {
+      background: honeydew;
+      color: forestgreen;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-badge.crafting {
+      background: bisque;
+      color: brown;
+    }
+
+    .status-badge.dispatched {
+      background: lavender;
+      color: darkblue;
+    }
+
+    .status-badge.cancelled {
+      background: mistyrose;
+      color: darkred;
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="../index.html" class="brand-logo">
+        <div class="logo-icon">RR</div>
+        <div class="logo-text">
+          <h1>RADHEY <span>RADHEY</span></h1>
+          <p>Furniture & Handicraft</p>
+          <span class="logo-subtitle">(All Types of Glass, Aluminium &amp; Steel Work)</span>
+        </div>
+      </a>
+
+      <div class="header-actions" style="margin-left: auto;">
+        <a href="../shop.html" class="action-btn" title="Browse Catalog">
+          <span>Shop</span>
+        </a>
+        <a href="wishlist.html" class="action-btn" title="Saved Wishlist">
+          <span class="badge-count wishlist-count-badge" style="display: none;">0</span>
+          <span>Wishlist</span>
+        </a>
+        <a href="../cart.html" class="action-btn" title="View Cart">
+          <span class="badge-count cart-count-badge" style="display: none;">0</span>
+          <span>Cart</span>
+        </a>
+        <a href="dashboard.html" class="action-btn active" title="My Account">
+          <span id="headerAccountName">Account</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="dashboard-layout">
+      <!-- SIDEBAR -->
+      <aside class="dash-sidebar">
+        <div class="dash-user-card">
+          <div class="dash-avatar" id="dashAvatar">RR</div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: black; margin-bottom: 4px;" id="dashUserName">Valued Customer</h3>
+          <p style="font-size: 0.82rem; color: gray; margin: 0;" id="dashUserEmail">Registered Member</p>
+        </div>
+
+        <nav class="dash-menu">
+          <a href="dashboard.html" class="active">📦 My Orders & Tracking</a>
+          <a href="profile.html">👤 Edit Profile</a>
+          <a href="wishlist.html">❤️ Saved Wishlist</a>
+          <a href="change-password.html">🔑 Change Password</a>
+          <a href="../index.html">🏠 Back to Store</a>
+          <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main>
+        <!-- Admin Notification Banner -->
+        <div id="adminNoticeBanner" style="display: none; background: bisque; border: 1px solid gold; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; color: brown;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 4px;">🛡️ Administrator Mode Active</div>
+              <div style="font-size: 0.88rem; color: brown;">
+                Aap Administrator ke roop me logged in hain. Sabhi customers ke orders dekhne aur status (Crafting, Dispatched, Delivered) update karne ke liye Admin Orders Panel kholein.
+              </div>
+            </div>
+            <a href="../admin/manage-orders.html" class="btn btn-dark" style="background: darkslategray; color: white; padding: 8px 18px; font-size: 0.88rem; border-radius: 6px; text-decoration: none; font-weight: 700;">
+              📦 Manage All Orders in Admin Panel →
+            </a>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-family: var(--font-serif); font-size: 1.8rem; font-weight: 800; margin: 0 0 6px 0;">
+            My <span style="color: var(--primary-red);">Orders & Shipment Tracking</span>
+          </h2>
+          <p style="color: gray; margin: 0; font-size: 0.92rem;">Track real-time workshop crafting, safe packaging, and shipping status.</p>
+        </div>
+
+        <div id="ordersContainer">
+          <div style="text-align: center; padding: 40px; color: gray; background: white; border-radius: 12px; border: 1px solid var(--border-light);">
+            ⏳ Loading your order history from database...
+          </div>
+        </div>
+
+        <div id="noOrdersBox" style="display: none; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px solid var(--border-light);">
+          <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">No Orders Placed Yet</h3>
+          <p style="color: gray; margin-bottom: 20px; font-size: 0.92rem;">Explore our Sheesham and Teak wood collection to place your first handcrafted order.</p>
+          <a href="../shop.html" class="btn btn-red" style="padding: 12px 28px; font-weight: 800;">Browse Store Catalog →</a>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="border: none;">
+      <div>© 2026 Radhey Radhey Furniture & Handicraft. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/products-data.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    // AUTH GUARD: Require customer login
+    const user = getLoggedInCustomer();
+    if (!user) {
+      window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    }
+
+    async function loadCustomerOrders() {
+      if (!user) return;
+
+      const role = (user.role || 'user').toLowerCase();
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+
+      // Setup user details in sidebar
+      if (user.name) {
+        document.getElementById('dashUserName').textContent = user.name;
+        document.getElementById('dashAvatar').textContent = isAdminOrSuper ? (role === 'superadmin' ? '👑' : '🛡️') : user.name.slice(0, 2).toUpperCase();
+        const hdr = document.getElementById('headerAccountName');
+        if (hdr) hdr.textContent = user.name.split(' ')[0];
+      }
+      if (user.email) {
+        document.getElementById('dashUserEmail').textContent = user.email + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      } else if (user.phone) {
+        document.getElementById('dashUserEmail').textContent = '+91 ' + user.phone + (isAdminOrSuper ? ` (${role.toUpperCase()})` : '');
+      }
+
+      // If Admin or Super Admin, customize sidebar and show banner
+      if (isAdminOrSuper) {
+        const banner = document.getElementById('adminNoticeBanner');
+        if (banner) banner.style.display = 'block';
+
+        const menu = document.querySelector('.dash-menu');
+        if (menu) {
+          menu.innerHTML = `
+            <a href="../admin/dashboard.html" style="font-weight: 700; color: dodgerblue;">📊 Admin Dashboard</a>
+            <a href="../admin/manage-orders.html" style="font-weight: 700; color: dodgerblue;">📦 Manage All Orders</a>
+            <a href="../admin/manage-products.html" style="font-weight: 700;">🛋️ Manage Products</a>
+            <a href="../admin/site-settings.html" style="font-weight: 700;">⚙️ Website Settings</a>
+            <a href="dashboard.html" class="active">📦 My Personal Orders</a>
+            <a href="wishlist.html">❤️ My Saved Wishlist</a>
+            <a href="../index.html">🏠 Back to Store</a>
+            <a href="javascript:void(0)" onclick="logoutCustomer()" style="color: red;">🚪 Sign Out</a>
+          `;
+        }
+      }
+
+      const allOrders = await getCustomerOrdersFromDB();
+
+      // Current user identifiers
+      const userEmail = (user.email || '').toLowerCase().trim();
+      let userPhone = (user.phone || '').toString().trim().replace(/[\s\-\+]/g, '');
+      if (userPhone.startsWith('91') && userPhone.length === 12) userPhone = userPhone.slice(2);
+      if (userPhone.startsWith('0') && userPhone.length === 11) userPhone = userPhone.slice(1);
+      const userPhone10 = userPhone.length >= 10 ? userPhone.slice(-10) : '';
+      const userUid = (user.id || user.userId || user.uid || '').toString().toLowerCase().trim();
+
+      // STRICT USER ISOLATION FILTER: Filter only current user's orders
+      const orders = (allOrders || []).filter(o => {
+        if (!o) return false;
+        // Exclude dummy sample template orders
+        if (o.orderId === 'RF-84920' || o.orderId === 'RF-84918') return false;
+
+        const ordEmail = (o.email || o.customerEmail || '').toLowerCase().trim();
+        let ordPhone = (o.phone || o.customerPhone || '').toString().trim().replace(/[\s\-\+]/g, '');
+        if (ordPhone.startsWith('91') && ordPhone.length === 12) ordPhone = ordPhone.slice(2);
+        if (ordPhone.startsWith('0') && ordPhone.length === 11) ordPhone = ordPhone.slice(1);
+        const ordPhone10 = ordPhone.length >= 10 ? ordPhone.slice(-10) : '';
+        const ordUserId = (o.userId || o.userUid || '').toString().toLowerCase().trim();
+
+        // Strict checks: at least one unique credential must strictly match
+        if (userUid && ordUserId && userUid === ordUserId) return true;
+        if (userPhone10 && ordPhone10 && userPhone10 === ordPhone10) return true;
+        if (userEmail && ordEmail && userEmail === ordEmail) return true;
+        if (userPhone10 && ordUserId === ('phone_' + userPhone10)) return true;
+        if (userEmail && ordUserId === ('email_' + userEmail.replace(/[^a-z0-9]/g, '_'))) return true;
+
+        return false;
+      });
+
+      const container = document.getElementById('ordersContainer');
+      const noOrders = document.getElementById('noOrdersBox');
+
+      if (!orders || orders.length === 0) {
+        container.style.display = 'none';
+        noOrders.style.display = 'block';
+        return;
+      }
+
+      noOrders.style.display = 'none';
+      container.style.display = 'block';
+      container.innerHTML = orders.map(ord => {
+        const orderId = ord.orderId || ord._id;
+        const itemsList = Array.isArray(ord.items) ? ord.items : [];
+        const statusText = ord.status || 'Confirmed';
+        const lower = statusText.toLowerCase();
+        let badgeClass = 'confirmed';
+        if (lower.includes('crafting')) badgeClass = 'crafting';
+        else if (lower.includes('dispatched')) badgeClass = 'dispatched';
+        else if (lower.includes('cancelled')) badgeClass = 'cancelled';
+
+        return `
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <span style="font-size: 0.82rem; color: gray;">Order ID:</span>
+              <strong style="color: var(--primary-red); font-size: 1.05rem; font-family: monospace; margin-left: 6px;">#${orderId}</strong>
+              <div style="font-size: 0.78rem; color: gray; margin-top: 3px;">📅 Placed on: ${ord.date || new Date().toLocaleDateString('en-IN')}</div>
+            </div>
+
+            <div style="text-align: right;">
+              <span class="status-badge ${badgeClass}">
+                ● ${statusText}
+              </span>
+              <div style="font-weight: 800; font-size: 1.15rem; margin-top: 4px; color: black;">
+                ${formatPrice(ord.totalAmount)}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px;">
+            ${itemsList.map(it => {
+              let imgSrc = it.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80';
+              if (!imgSrc.startsWith('http') && !imgSrc.startsWith('data:') && !imgSrc.startsWith('../') && !imgSrc.startsWith('/')) {
+                imgSrc = '../' + imgSrc;
+              }
+              const qty = it.quantity || 1;
+              const unitPrice = it.price ? formatPrice(it.price) : '';
+              return `
+              <div style="display: flex; gap: 14px; align-items: center;">
+                <img src="${imgSrc}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid lightgray;" onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80'">
+                <div style="flex: 1;">
+                  <h4 style="font-size: 0.95rem; font-weight: 700; color: black; margin: 0 0 3px 0;">${it.title || 'Handcrafted Furniture'}</h4>
+                  <span style="font-size: 0.8rem; color: gray;">Finish: ${it.finish || 'Natural Finish'} | Qty: x${qty}</span>
+                </div>
+                <strong style="font-size: 0.95rem; color: black;">${formatPrice((it.price || 0) * qty)}</strong>
+              </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div style="border-top: 1px solid var(--border-light); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: gray;">
+            <div>
+              <strong>📍 Delivery Address:</strong> ${ord.address || 'Address registered on file'}
+            </div>
+            <a href="https://wa.me/+919772225296?text=Hello%20Radhey%20Radhey%20Furniture,%20please%20give%20me%20update%20on%20Order%20%23${orderId}" style="color: green; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; background: honeydew; padding: 6px 12px; border-radius: 6px; border: 1px solid lightgreen;">
+              💬 WhatsApp Tracking Updates →
+            </a>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadCustomerOrders();
+    });
+
+    window.addEventListener('radha_profile_synced', async () => {
+      await loadCustomerOrders();
+    });
+  </script>
+</body>
+</html>
