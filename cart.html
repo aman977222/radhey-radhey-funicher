@@ -198,8 +198,8 @@
 
         <!-- Coupon Form -->
         <div class="coupon-box">
-          <input type="text" id="couponInput" placeholder="Coupon (e.g. RADHEY10)">
-          <button class="btn btn-dark btn-sm" onclick="applyCoupon()">Apply</button>
+          <input type="text" id="couponInput" placeholder="Enter Coupon Code" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+          <button type="button" class="btn btn-dark btn-sm" onclick="applyCoupon()">Apply</button>
         </div>
         <small id="couponMessage" style="display: block; margin-top: -12px; margin-bottom: 12px; font-size: 0.78rem;"></small>
 
@@ -312,16 +312,76 @@
       }
     }
 
+    let appliedCoupon = null;
+
+    function applyCoupon() {
+      const input = (document.getElementById('couponInput')?.value || '').trim();
+      const msg = document.getElementById('couponMessage');
+      const subtotal = getCartSubtotal();
+
+      if (!input) {
+        appliedCoupon = null;
+        try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        if (msg) {
+          msg.textContent = '';
+        }
+        calculateTotals();
+        return;
+      }
+
+      const res = (typeof validateCouponCode === 'function') 
+        ? validateCouponCode(input, subtotal)
+        : { valid: input.toUpperCase() === 'RADHEY10', discountAmount: (subtotal * 10) / 100, message: 'Coupon applied' };
+
+      if (res.valid) {
+        appliedCoupon = res;
+        try {
+          localStorage.setItem('radha_applied_coupon_v1', JSON.stringify({
+            code: res.code,
+            type: res.type,
+            value: res.value,
+            discountAmount: res.discountAmount
+          }));
+        } catch (e) {}
+        if (msg) {
+          msg.textContent = res.message;
+          msg.style.color = 'green';
+        }
+      } else {
+        appliedCoupon = null;
+        try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        if (msg) {
+          msg.textContent = res.message;
+          msg.style.color = 'red';
+        }
+      }
+      calculateTotals();
+    }
+
     function calculateTotals() {
       const subtotal = getCartSubtotal();
-      const discount = (subtotal * discountPercent) / 100;
-      const grandTotal = subtotal - discount;
+      let discount = 0;
+
+      if (appliedCoupon && typeof validateCouponCode === 'function') {
+        const recheck = validateCouponCode(appliedCoupon.code, subtotal);
+        if (recheck.valid) {
+          discount = recheck.discountAmount;
+          appliedCoupon.discountAmount = discount;
+        } else {
+          appliedCoupon = null;
+          try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        }
+      }
+
+      const grandTotal = Math.max(0, subtotal - discount);
 
       document.getElementById('subtotalDisplay').textContent = formatPrice(subtotal);
       
       const discountRow = document.getElementById('discountRow');
-      if (discountPercent > 0) {
+      if (discount > 0 && appliedCoupon) {
         discountRow.style.display = 'flex';
+        const labelSpan = discountRow.querySelector('span');
+        if (labelSpan) labelSpan.textContent = `Promo Discount (${appliedCoupon.code})`;
         document.getElementById('discountDisplay').textContent = `-${formatPrice(discount)}`;
       } else {
         discountRow.style.display = 'none';
@@ -330,23 +390,21 @@
       document.getElementById('grandTotalDisplay').textContent = formatPrice(grandTotal);
     }
 
-    function applyCoupon() {
-      const input = document.getElementById('couponInput').value.trim().toUpperCase();
-      const msg = document.getElementById('couponMessage');
-      if (input === 'RADHEY10' || input === 'RADHA10') {
-        discountPercent = 10;
-        msg.textContent = `🎉 Coupon ${input} applied! 10% Discount given.`;
-        msg.style.color = 'green';
-      } else {
-        discountPercent = 0;
-        msg.textContent = 'Invalid coupon code. Try RADHEY10';
-        msg.style.color = 'red';
-      }
-      calculateTotals();
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       renderCartPage();
+      try {
+        const savedCoupon = localStorage.getItem('radha_applied_coupon_v1');
+        if (savedCoupon) {
+          const parsed = JSON.parse(savedCoupon);
+          if (parsed && parsed.code) {
+            const input = document.getElementById('couponInput');
+            if (input) {
+              input.value = parsed.code;
+              applyCoupon();
+            }
+          }
+        }
+      } catch (e) {}
     });
 
     window.addEventListener('radha_cart_synced', () => {

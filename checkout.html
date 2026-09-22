@@ -270,13 +270,25 @@
                 <span>Pan-jaipur Transit & Delivery</span>
                 <strong>FREE</strong>
               </div>
+              <div id="chkDiscountRow" style="display: none; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: var(--primary-red); font-weight: 700;">
+                <span id="chkDiscountLabel">Coupon Discount</span>
+                <strong id="chkDiscount">-₹0</strong>
+              </div>
+
+              <!-- Checkout Coupon Input (No suggestions, autocomplete off) -->
+              <div style="display: flex; gap: 6px; margin: 12px 0 6px 0;">
+                <input type="text" id="chkCouponInput" placeholder="Enter Coupon Code" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="flex: 1; padding: 8px 10px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.85rem; text-transform: uppercase;">
+                <button type="button" class="btn btn-dark btn-sm" onclick="applyCheckoutCoupon()" style="padding: 8px 14px; font-size: 0.82rem;">Apply</button>
+              </div>
+              <small id="chkCouponMessage" style="display: block; font-size: 0.76rem; margin-bottom: 8px;"></small>
+
               <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 800; color: black; border-top: 2px solid var(--border-light); padding-top: 12px; margin-top: 10px;">
                 <span>Total Due:</span>
                 <span id="chkTotal" style="color: var(--primary-red);">₹0</span>
               </div>
             </div>
 
-            <button type="submit" class="btn btn-red btn-block" style="margin-top: 24px; padding: 16px; font-size: 1.1rem;">
+            <button type="submit" class="btn btn-red btn-block" style="margin-top: 20px; padding: 16px; font-size: 1.1rem;">
               Confirm & Place Order →
             </button>
 
@@ -346,6 +358,85 @@
       localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
     }
 
+    let checkoutCoupon = null;
+
+    function applyCheckoutCoupon() {
+      const input = (document.getElementById('chkCouponInput')?.value || '').trim();
+      const msg = document.getElementById('chkCouponMessage');
+      const subtotal = getCartSubtotal();
+
+      if (!input) {
+        checkoutCoupon = null;
+        try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        if (msg) msg.textContent = '';
+        renderCheckoutTotals();
+        return;
+      }
+
+      const res = (typeof validateCouponCode === 'function') 
+        ? validateCouponCode(input, subtotal)
+        : { valid: input.toUpperCase() === 'RADHEY10', discountAmount: (subtotal * 10) / 100, message: 'Coupon applied' };
+
+      if (res.valid) {
+        checkoutCoupon = res;
+        try {
+          localStorage.setItem('radha_applied_coupon_v1', JSON.stringify({
+            code: res.code,
+            type: res.type,
+            value: res.value,
+            discountAmount: res.discountAmount
+          }));
+        } catch (e) {}
+        if (msg) {
+          msg.textContent = res.message;
+          msg.style.color = 'green';
+        }
+      } else {
+        checkoutCoupon = null;
+        try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        if (msg) {
+          msg.textContent = res.message;
+          msg.style.color = 'red';
+        }
+      }
+      renderCheckoutTotals();
+    }
+
+    function renderCheckoutTotals() {
+      const subtotal = getCartSubtotal();
+      let discount = 0;
+
+      if (checkoutCoupon && typeof validateCouponCode === 'function') {
+        const recheck = validateCouponCode(checkoutCoupon.code, subtotal);
+        if (recheck.valid) {
+          discount = recheck.discountAmount;
+          checkoutCoupon.discountAmount = discount;
+        } else {
+          checkoutCoupon = null;
+          try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
+        }
+      }
+
+      const grandTotal = Math.max(0, subtotal - discount);
+
+      document.getElementById('chkSubtotal').textContent = formatPrice(subtotal);
+      
+      const discountRow = document.getElementById('chkDiscountRow');
+      const discountLabel = document.getElementById('chkDiscountLabel');
+      const discountVal = document.getElementById('chkDiscount');
+
+      if (discount > 0 && checkoutCoupon) {
+        discountRow.style.display = 'flex';
+        if (discountLabel) discountLabel.textContent = `Promo Discount (${checkoutCoupon.code})`;
+        if (discountVal) discountVal.textContent = `-${formatPrice(discount)}`;
+      } else {
+        discountRow.style.display = 'none';
+      }
+
+      document.getElementById('chkTotal').textContent = formatPrice(grandTotal);
+      return { subtotal, discount, grandTotal };
+    }
+
     function renderCheckout() {
       const cart = getCart();
       if (cart.length === 0) {
@@ -368,9 +459,20 @@
         </div>
       `).join('');
 
-      const total = getCartSubtotal();
-      document.getElementById('chkSubtotal').textContent = formatPrice(total);
-      document.getElementById('chkTotal').textContent = formatPrice(total);
+      // Auto-load previously applied coupon
+      try {
+        const saved = localStorage.getItem('radha_applied_coupon_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.code) {
+            const input = document.getElementById('chkCouponInput');
+            if (input) input.value = parsed.code;
+            checkoutCoupon = parsed;
+          }
+        }
+      } catch (e) {}
+
+      renderCheckoutTotals();
     }
 
     async function handlePlaceOrder(e) {
@@ -390,7 +492,8 @@
         const orderId = 'RR-' + Math.floor(100000 + Math.random() * 900000);
         const checkedMethod = document.querySelector('input[name="paymentMethod"]:checked');
         const paymentMode = checkedMethod ? checkedMethod.value : 'Cash on Delivery (COD)';
-        const total = getCartSubtotal();
+        const totals = renderCheckoutTotals();
+        const finalTotal = totals.grandTotal;
 
         const custName = (document.getElementById('custName')?.value || '').trim();
         let custPhone = (document.getElementById('custPhone')?.value || '').trim().replace(/[\s\-\+]/g, '');
@@ -429,7 +532,10 @@
           customerEmail: cleanEmail,
           address: fullAddress,
           items: cart,
-          totalAmount: total,
+          subtotal: totals.subtotal,
+          discountAmount: totals.discount,
+          appliedCoupon: checkoutCoupon ? checkoutCoupon.code : null,
+          totalAmount: finalTotal,
           paymentMode: paymentMode,
           status: 'Confirmed',
           createdAt: new Date().toISOString()
@@ -442,14 +548,16 @@
         const storeSettings = (typeof getActiveStoreSettings === 'function') ? getActiveStoreSettings() : { whatsapp: '9772225296', brandName: 'Radhey Radhey Funicher' };
         const cleanWa = (storeSettings.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
         const brandName = storeSettings.brandName || 'Radhey Radhey Funicher';
-        const waText = `Namaste ${brandName}, I have placed order #${orderId} on your website for ${cart.map(c => c.title).join(', ')}. Total: ${formatPrice(total)} (${paymentMode}). Customer: ${newOrder.customerName}, Phone: ${newOrder.phone}.`;
+        const discountText = totals.discount > 0 ? ` [Discount: ₹${totals.discount.toLocaleString('en-IN')} via ${checkoutCoupon.code}]` : '';
+        const waText = `Namaste ${brandName}, I have placed order #${orderId} on your website for ${cart.map(c => c.title).join(', ')}. Total Due: ${formatPrice(finalTotal)}${discountText} (${paymentMode}). Customer: ${newOrder.customerName}, Phone: ${newOrder.phone}.`;
         const waBtn = document.getElementById('whatsappOrderBtn');
         if (waBtn) {
           waBtn.href = `https://wa.me/91${cleanWa}?text=${encodeURIComponent(waText)}`;
         }
 
-        // Clear Cart
+        // Clear Cart and applied coupon
         saveCart([]);
+        try { localStorage.removeItem('radha_applied_coupon_v1'); } catch (e) {}
         updateCartBadge();
 
         submitBtn.disabled = false;

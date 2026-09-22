@@ -498,7 +498,7 @@ function resolveStoreImg(src, category = '') {
 }
 
 // ---------------------------------------------------------------
-// ACTIVE STORE SETTINGS HELPER
+// ACTIVE STORE SETTINGS & COUPON HELPERS
 // ---------------------------------------------------------------
 function getActiveStoreSettings() {
   const fallback = (typeof DEFAULT_SITE_SETTINGS !== 'undefined') ? DEFAULT_SITE_SETTINGS : {
@@ -509,6 +509,10 @@ function getActiveStoreSettings() {
     bannerText: '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood',
     address: 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020',
     couponCode: 'RADHEY10',
+    coupons: (typeof DEFAULT_COUPONS !== 'undefined') ? DEFAULT_COUPONS : [
+      { code: 'RADHEY10', type: 'percent', value: 10, minOrder: 0, status: 'active' },
+      { code: 'RADHA10', type: 'percent', value: 10, minOrder: 0, status: 'active' }
+    ],
     themeColor: 'Red & Black Theme'
   };
 
@@ -520,6 +524,67 @@ function getActiveStoreSettings() {
   } catch (e) {}
 
   return { ...fallback };
+}
+
+function getActiveCoupons() {
+  const fallback = (typeof DEFAULT_COUPONS !== 'undefined') ? DEFAULT_COUPONS : [
+    { code: 'RADHEY10', type: 'percent', value: 10, minOrder: 0, status: 'active' },
+    { code: 'RADHA10', type: 'percent', value: 10, minOrder: 0, status: 'active' }
+  ];
+
+  try {
+    const local = localStorage.getItem('radha_store_coupons_v1');
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    const settingsRaw = localStorage.getItem('radha_store_settings_v1');
+    if (settingsRaw) {
+      const s = JSON.parse(settingsRaw);
+      if (s && Array.isArray(s.coupons) && s.coupons.length > 0) return s.coupons;
+    }
+  } catch (e) {}
+
+  return fallback;
+}
+
+function validateCouponCode(inputCode, subtotal = 0) {
+  const code = (inputCode || '').toString().trim().toUpperCase();
+  if (!code) {
+    return { valid: false, message: 'Please enter a coupon code.' };
+  }
+
+  const coupons = getActiveCoupons();
+  const matched = coupons.find(c => (c.code || '').trim().toUpperCase() === code && c.status !== 'inactive');
+
+  if (!matched) {
+    return { valid: false, message: 'Invalid coupon code. Please enter a valid coupon.' };
+  }
+
+  const minOrder = Number(matched.minOrder) || 0;
+  if (subtotal > 0 && subtotal < minOrder) {
+    return { valid: false, message: `This coupon requires a minimum order of ₹${minOrder.toLocaleString('en-IN')}.` };
+  }
+
+  let discountAmount = 0;
+  const val = Number(matched.value) || 0;
+  if (matched.type === 'percent') {
+    discountAmount = (subtotal * val) / 100;
+  } else {
+    discountAmount = Math.min(val, subtotal);
+  }
+
+  return {
+    valid: true,
+    coupon: matched,
+    code: matched.code,
+    type: matched.type,
+    value: val,
+    discountAmount: discountAmount,
+    message: matched.type === 'percent' 
+      ? `🎉 Coupon ${matched.code} applied! ${val}% discount given.`
+      : `🎉 Coupon ${matched.code} applied! ₹${val.toLocaleString('en-IN')} discount given.`
+  };
 }
 
 // ---------------------------------------------------------------

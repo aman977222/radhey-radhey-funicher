@@ -1475,6 +1475,11 @@ async function fbSyncAllToCloud() {
 }
 
 // 7. STORE & WEBSITE CONFIGURATIONS (Firebase Cloud + Local)
+const DEFAULT_COUPONS = [
+  { code: 'RADHEY10', type: 'percent', value: 10, minOrder: 0, status: 'active' },
+  { code: 'RADHA10', type: 'percent', value: 10, minOrder: 0, status: 'active' }
+];
+
 const DEFAULT_SITE_SETTINGS = {
   brandName: 'Radhey Radhey Funicher',
   phone: '9772225296',
@@ -1483,6 +1488,7 @@ const DEFAULT_SITE_SETTINGS = {
   bannerText: '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood',
   address: 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020',
   couponCode: 'RADHEY10',
+  coupons: DEFAULT_COUPONS,
   themeColor: 'Red & Black Theme'
 };
 
@@ -1495,7 +1501,11 @@ async function fbGetSiteSettings() {
         const cloudData = { ...DEFAULT_SITE_SETTINGS, ...docSnap.data() };
         if (cloudData.phone) cloudData.phone = cloudData.phone.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
         if (cloudData.whatsapp) cloudData.whatsapp = cloudData.whatsapp.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+        if (!Array.isArray(cloudData.coupons) || cloudData.coupons.length === 0) {
+          cloudData.coupons = DEFAULT_COUPONS;
+        }
         localStorage.setItem('radha_store_settings_v1', JSON.stringify(cloudData));
+        localStorage.setItem('radha_store_coupons_v1', JSON.stringify(cloudData.coupons));
         return cloudData;
       }
     }
@@ -1509,6 +1519,9 @@ async function fbGetSiteSettings() {
       const parsed = { ...DEFAULT_SITE_SETTINGS, ...JSON.parse(local) };
       if (parsed.phone) parsed.phone = parsed.phone.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
       if (parsed.whatsapp) parsed.whatsapp = parsed.whatsapp.replace(/[^0-9]/g, '').slice(-10) || '9772225296';
+      if (!Array.isArray(parsed.coupons) || parsed.coupons.length === 0) {
+        parsed.coupons = DEFAULT_COUPONS;
+      }
       return parsed;
     }
   } catch (e) {}
@@ -1519,11 +1532,13 @@ async function fbGetSiteSettings() {
 async function fbSaveSiteSettings(settingsData) {
   const cleanPhone = (settingsData.phone || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
   const cleanWa = (settingsData.whatsapp || '9772225296').replace(/[^0-9]/g, '').slice(-10) || '9772225296';
-  const merged = { ...DEFAULT_SITE_SETTINGS, ...settingsData, phone: cleanPhone, whatsapp: cleanWa, updatedAt: new Date().toISOString() };
+  const coupons = Array.isArray(settingsData.coupons) ? settingsData.coupons : DEFAULT_COUPONS;
+  const merged = { ...DEFAULT_SITE_SETTINGS, ...settingsData, coupons: coupons, phone: cleanPhone, whatsapp: cleanWa, updatedAt: new Date().toISOString() };
 
   // 1. Local instant save
   try {
     localStorage.setItem('radha_store_settings_v1', JSON.stringify(merged));
+    localStorage.setItem('radha_store_coupons_v1', JSON.stringify(coupons));
   } catch (e) {
     console.warn('Local settings save error:', e);
   }
@@ -1547,6 +1562,22 @@ async function fbSaveSiteSettings(settingsData) {
   }
 
   return { success: true, settings: merged };
+}
+
+async function fbGetCoupons() {
+  try {
+    const settings = await fbGetSiteSettings();
+    if (settings && Array.isArray(settings.coupons)) {
+      return settings.coupons;
+    }
+  } catch (e) {}
+
+  try {
+    const local = localStorage.getItem('radha_store_coupons_v1');
+    if (local) return JSON.parse(local);
+  } catch (e) {}
+
+  return DEFAULT_COUPONS;
 }
 
 // ----------------------------------------------------------------

@@ -104,15 +104,48 @@
             <textarea id="cfgAddress" rows="3" required placeholder="Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020" style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem; font-family: inherit; resize: vertical;"></textarea>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: black;">Primary Store Theme</label>
-              <input type="text" value="Royal Heritage (Red & Dark Slate)" readonly style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; background: whitesmoke; color: gray; font-size: 0.92rem;">
+          <!-- Multiple Redeem / Promo Codes Management -->
+          <div style="margin-bottom: 25px; padding: 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h4 style="font-size: 0.98rem; font-weight: 800; color: #1e293b; margin: 0;">🎟️ Multiple Redeem / Coupon Codes</h4>
+                <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Yahan se aap ek sath multiple coupon codes live add aur manage kar sakte hain.</p>
+              </div>
+              <span id="couponCountBadge" style="background: #e0f2fe; color: #0284c7; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800;">2 Active Codes</span>
             </div>
 
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: black;">Default Store Coupon Code</label>
-              <input type="text" id="cfgCoupon" value="RADHEY10" placeholder="RADHEY10" style="width: 100%; padding: 10px 12px; border: 1px solid lightgray; border-radius: 6px; font-size: 0.92rem; text-transform: uppercase; font-weight: 700;">
+            <!-- Add New Coupon Row -->
+            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+              <div style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 8px;">➕ Add Naya Redeem Code:</div>
+              <div style="display: grid; grid-template-columns: 2fr 1.3fr 1.2fr 1.2fr auto; gap: 10px; align-items: flex-end;">
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: gray; margin-bottom: 3px;">Coupon Code</label>
+                  <input type="text" id="newCpnCode" placeholder="e.g. FESTIVE20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; text-transform: uppercase; font-weight: 700;">
+                </div>
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: gray; margin-bottom: 3px;">Discount Type</label>
+                  <select id="newCpnType" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+                    <option value="percent">Percentage (%)</option>
+                    <option value="flat">Flat Cash (₹)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: gray; margin-bottom: 3px;">Value</label>
+                  <input type="number" id="newCpnValue" placeholder="10" min="1" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; font-weight: 700;">
+                </div>
+                <div>
+                  <label style="display: block; font-size: 0.75rem; color: gray; margin-bottom: 3px;">Min Order (₹)</label>
+                  <input type="number" id="newCpnMin" placeholder="0" min="0" value="0" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+                </div>
+                <div>
+                  <button type="button" onclick="handleAddCoupon()" class="btn btn-dark" style="padding: 9px 16px; font-size: 0.84rem; font-weight: 700; white-space: nowrap; height: 38px;">+ Add Code</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- List of existing coupons -->
+            <div id="couponsListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- dynamic rows -->
             </div>
           </div>
 
@@ -132,6 +165,108 @@
   <script>
     // AUTH GUARD: Require Admin or Super Admin access
     const currentAdmin = enforceAdminAuth();
+    let currentCoupons = [
+      { code: 'RADHEY10', type: 'percent', value: 10, minOrder: 0, status: 'active' },
+      { code: 'RADHA10', type: 'percent', value: 10, minOrder: 0, status: 'active' }
+    ];
+
+    function renderCouponsTable() {
+      const container = document.getElementById('couponsListContainer');
+      const countBadge = document.getElementById('couponCountBadge');
+      if (!container) return;
+
+      const activeCount = currentCoupons.filter(c => c.status !== 'inactive').length;
+      if (countBadge) countBadge.textContent = `${activeCount} Active Code${activeCount !== 1 ? 's' : ''}`;
+
+      if (currentCoupons.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 14px; background: white; border-radius: 6px; color: gray; font-size: 0.82rem;">Koi coupon code active nahi hai. Upar se naya code add karein.</div>`;
+        return;
+      }
+
+      container.innerHTML = currentCoupons.map((c, idx) => {
+        const isInactive = c.status === 'inactive';
+        const typeLabel = c.type === 'percent' ? `${c.value}% OFF` : `₹${c.value} OFF`;
+        const minText = (c.minOrder && Number(c.minOrder) > 0) ? `Min Order: ₹${Number(c.minOrder).toLocaleString('en-IN')}` : 'No Min Order';
+
+        return `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; opacity: ${isInactive ? '0.6' : '1'};">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <strong style="font-family: monospace; font-size: 1.05rem; background: #fef2f2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; border: 1px dashed #f87171; letter-spacing: 0.5px;">
+              ${c.code}
+            </strong>
+            <div>
+              <span style="font-weight: 700; font-size: 0.88rem; color: #0f172a;">${typeLabel}</span>
+              <span style="font-size: 0.75rem; color: #64748b; margin-left: 8px;">(${minText})</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" onclick="handleToggleCoupon(${idx})" style="background: ${isInactive ? '#f1f5f9' : '#dcfce7'}; color: ${isInactive ? '#64748b' : '#15803d'}; border: 1px solid ${isInactive ? '#cbd5e1' : '#86efac'}; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+              ${isInactive ? '⚪ Inactive' : '🟢 Active'}
+            </button>
+            <button type="button" onclick="handleDeleteCoupon(${idx})" title="Delete Coupon" style="background: none; border: none; color: #ef4444; font-size: 1rem; cursor: pointer; padding: 4px 8px;">
+              🗑️
+            </button>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function handleAddCoupon() {
+      const codeInput = document.getElementById('newCpnCode');
+      const typeInput = document.getElementById('newCpnType');
+      const valInput = document.getElementById('newCpnValue');
+      const minInput = document.getElementById('newCpnMin');
+
+      const code = (codeInput?.value || '').trim().toUpperCase();
+      const type = typeInput?.value || 'percent';
+      const val = Number(valInput?.value) || 0;
+      const min = Number(minInput?.value) || 0;
+
+      if (!code) {
+        alert('Kripya Coupon Code enter karein (e.g. FESTIVE20)!');
+        return;
+      }
+      if (val <= 0) {
+        alert('Kripya valid discount value dalein!');
+        return;
+      }
+
+      // Check duplicate
+      const exists = currentCoupons.some(c => c.code === code);
+      if (exists) {
+        alert(`Coupon code "${code}" pehle se maujood hai!`);
+        return;
+      }
+
+      currentCoupons.unshift({
+        code: code,
+        type: type,
+        value: val,
+        minOrder: min,
+        status: 'active'
+      });
+
+      // Clear inputs
+      if (codeInput) codeInput.value = '';
+      if (valInput) valInput.value = '';
+      if (minInput) minInput.value = '0';
+
+      renderCouponsTable();
+    }
+
+    function handleDeleteCoupon(index) {
+      if (confirm(`Kya aap coupon "${currentCoupons[index].code}" delete karna chahte hain?`)) {
+        currentCoupons.splice(index, 1);
+        renderCouponsTable();
+      }
+    }
+
+    function handleToggleCoupon(index) {
+      currentCoupons[index].status = currentCoupons[index].status === 'inactive' ? 'active' : 'inactive';
+      renderCouponsTable();
+    }
 
     async function loadSiteSettings() {
       try {
@@ -146,7 +281,13 @@
           if (document.getElementById('cfgEmail')) document.getElementById('cfgEmail').value = settings.email || 'jangid7090@gmail.com';
           if (document.getElementById('cfgBanner')) document.getElementById('cfgBanner').value = settings.bannerText || '🔴 UPTO 40% OFF Festive Discount on Solid Sheesham & Teak Wood';
           if (document.getElementById('cfgAddress')) document.getElementById('cfgAddress').value = settings.address || 'Radhey Radhey Funicher, Mansarovar, Jaipur, Rajasthan 302020';
-          if (document.getElementById('cfgCoupon')) document.getElementById('cfgCoupon').value = settings.couponCode || 'RADHEY10';
+
+          if (Array.isArray(settings.coupons) && settings.coupons.length > 0) {
+            currentCoupons = settings.coupons;
+          } else if (settings.couponCode) {
+            currentCoupons = [{ code: settings.couponCode, type: 'percent', value: 10, minOrder: 0, status: 'active' }];
+          }
+          renderCouponsTable();
 
           const lastUpdatedLabel = document.getElementById('lastUpdatedLabel');
           if (lastUpdatedLabel) {
@@ -181,7 +322,8 @@
         email: (document.getElementById('cfgEmail')?.value || '').trim(),
         bannerText: (document.getElementById('cfgBanner')?.value || '').trim(),
         address: (document.getElementById('cfgAddress')?.value || '').trim(),
-        couponCode: (document.getElementById('cfgCoupon')?.value || '').trim().toUpperCase()
+        coupons: currentCoupons,
+        couponCode: (currentCoupons[0]?.code || 'RADHEY10')
       };
 
       try {
@@ -200,7 +342,7 @@
           if (lastUpdatedLabel) {
             lastUpdatedLabel.textContent = 'Just updated now';
           }
-          alert('✅ Store & Website Configurations database me safaltapoorvak save ho gayi hain!');
+          alert('✅ Store Settings & Redeem Codes database me safaltapoorvak save ho gaye!');
         } else {
           alert('Warning saving settings: ' + ((res && res.cloudWarning) || 'Saved locally.'));
         }
